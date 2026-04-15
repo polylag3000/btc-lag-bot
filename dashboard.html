@@ -6,93 +6,236 @@
 <title>LAGSCOPE</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080b0f;--surface:#0d1117;--border:#1a2030;--up:#00ff88;--down:#ff3b5c;--neutral:#4a9eff;--dim:#3a4560;--text:#c8d8f0;--muted:#4a5870;--signal:#ffcc00;}
+:root{--bg:#080b0f;--surface:#0d1117;--border:#1a2030;--up:#00ff88;--down:#ff3b5c;--neutral:#4a9eff;--poly:#ffcc00;--dim:#3a4560;--text:#c8d8f0;--muted:#4a5870;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
 header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;}.logo span{color:var(--neutral);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:0.05em;}
+.logo span{color:var(--neutral);}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;}
-.dot.live{background:var(--up);box-shadow:0 0 8px var(--up);animation:pulse 2s infinite;}
+.dot.live{background:var(--up);box-shadow:0 0 10px var(--up);animation:pulse 2s infinite;}
 .dot.error{background:var(--down);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .slbl{font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;}
-main{padding:16px;display:flex;flex-direction:column;gap:14px;}
+main{padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+/* Price cards */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden;}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--dim);}
-.card.up::before{background:var(--up);}.card.dn::before{background:var(--down);}
-.lbl{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
-.val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;line-height:1;}
-.val.fu{color:var(--up);}.val.fd{color:var(--down);}
-.sub{font-size:10px;color:var(--muted);margin-top:4px;}
-.bc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
-.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.cl{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
-.big{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;text-align:center;padding:8px 0;transition:color 0.3s;}
-.meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
-.ban{display:none;border-radius:8px;padding:12px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;text-align:center;}
-.ban.show{display:block;animation:fb 0.5s ease;}
-.ban.up{background:var(--up);color:#000;}.ban.dn{background:var(--down);color:#fff;}
-@keyframes fb{0%{transform:scale(0.95);opacity:0}100%{transform:scale(1);opacity:1}}
-.bt{height:6px;background:var(--border);border-radius:3px;margin:10px 0 6px;position:relative;}
-.bf{height:100%;border-radius:3px;transition:width 0.4s,background 0.3s;}
-.bc2{position:absolute;left:50%;top:-3px;width:1px;height:12px;background:var(--muted);}
-.bl{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);}
-canvas{width:100% !important;border-radius:4px;}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:border-color 0.3s;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transition:background 0.3s;}
+.pcard.bin::before{background:var(--neutral);}
+.pcard.poly::before{background:var(--poly);}
+.pcard.up{border-color:rgba(0,255,136,0.3);}
+.pcard.dn{border-color:rgba(255,59,92,0.3);}
+.plbl{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.pdot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.pval{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1;}
+.pval.fu{color:var(--up);}.pval.fd{color:var(--down);}
+.psub{font-size:10px;color:var(--muted);margin-top:5px;}
+
+/* Signal banner */
+.ban{display:none;border-radius:10px;padding:14px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;text-align:center;letter-spacing:0.05em;}
+.ban.show{display:block;animation:fb 0.4s ease;}
+.ban.up{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#000;}
+.ban.dn{background:linear-gradient(135deg,#ff3b5c,#cc2040);color:#fff;}
+@keyframes fb{0%{transform:scale(0.96);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* Main chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.chart-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
+.legend{display:flex;gap:14px;}
+.leg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
+.legdot{width:8px;height:3px;border-radius:2px;}
+
+/* Spread indicator */
+.spread-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.spread-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.spread-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;transition:color 0.3s;}
+.spread-label{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
+.spread-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;}
+
+/* Bias bar */
+.bias-track{height:4px;background:var(--border);border-radius:2px;margin:10px 0 6px;position:relative;}
+.bias-fill{height:100%;border-radius:2px;transition:width 0.5s,background 0.3s;}
+.bias-center{position:absolute;left:50%;top:-4px;width:1px;height:12px;background:var(--dim);}
+.bias-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);letter-spacing:0.1em;}
+
+/* Stats */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.sb{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
-.sv{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#fff;}
-.sl{font-size:8px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-top:3px;}
+.sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.sv{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;}
+.sl{font-size:8px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+/* Log */
+.log-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .lt{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-#lg{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
-.le{font-size:10px;color:var(--muted);border-left:2px solid var(--border);padding-left:8px;line-height:1.5;}
-.le.ul{border-color:var(--up);color:var(--up);}.le.dl{border-color:var(--down);color:var(--down);}
-footer{padding:14px;text-align:center;font-size:9px;color:var(--muted);}
+#lg{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;}
+.le{font-size:10px;color:var(--muted);border-left:2px solid var(--border);padding-left:8px;line-height:1.6;}
+.le.ul{border-color:var(--up);color:var(--up);}
+.le.dl{border-color:var(--down);color:var(--down);}
+
+canvas{width:100% !important;}
+footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spacing:0.1em;}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">LAG<span>SCOPE</span></div>
-  <div style="display:flex;align-items:center;gap:6px"><span class="dot" id="dot"></span><span class="slbl" id="slbl">CONNECTING</span></div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <span class="dot" id="dot"></span>
+    <span class="slbl" id="slbl">CONNECTING</span>
+  </div>
 </header>
 <main>
   <div class="ban" id="ban">SIGNAL</div>
+
+  <!-- Price cards -->
   <div class="row">
-    <div class="card" id="bc1"><div class="lbl">◈ BINANCE</div><div class="val" id="bp">—</div><div class="sub" id="bs">waiting...</div></div>
-    <div class="card" id="pc1"><div class="lbl">⬡ POLYMARKET</div><div class="val" id="pp">—</div><div class="sub" id="ps">waiting...</div></div>
+    <div class="pcard bin" id="bc">
+      <div class="plbl"><span class="pdot" style="background:var(--neutral)"></span>BINANCE</div>
+      <div class="pval" id="bp">—</div>
+      <div class="psub" id="bs">spot price</div>
+    </div>
+    <div class="pcard poly" id="pc">
+      <div class="plbl"><span class="pdot" style="background:var(--poly)"></span>POLYMARKET</div>
+      <div class="pval" id="pp">—</div>
+      <div class="psub" id="ps">market price</div>
+    </div>
   </div>
-  <div class="bc">
-    <div class="ch"><div class="cl">СПРЕД (DEVIATION)</div><div style="font-size:10px;color:var(--muted)">порог $<span id="thr">2</span></div></div>
-    <div class="big" id="dv">$0.00</div>
-    <div class="meta"><span>bias: <span id="bv">—</span></span><span>ticks: <span id="tv">0</span></span></div>
+
+  <!-- MAIN DUAL CHART -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">PRICE LAG MONITOR</div>
+      <div class="legend">
+        <div class="leg"><div class="legdot" style="background:var(--neutral)"></div>BINANCE</div>
+        <div class="leg"><div class="legdot" style="background:var(--poly)"></div>POLYMARKET</div>
+      </div>
+    </div>
+    <canvas id="mainChart" height="140"></canvas>
   </div>
-  <div class="bc">
-    <div class="ch"><div class="cl">BIAS METER</div><div style="font-size:10px;color:var(--muted)" id="bd">neutral</div></div>
-    <div class="bt"><div class="bf" id="bf" style="width:50%;background:var(--dim)"></div><div class="bc2"></div></div>
-    <div class="bl"><span>◄ DOWN</span><span>NEUTRAL</span><span>UP ►</span></div>
+
+  <!-- Spread / Deviation -->
+  <div class="spread-card">
+    <div class="spread-row">
+      <div>
+        <div class="spread-label">DEVIATION FROM BIAS</div>
+        <div class="spread-val" id="dv">$0.00</div>
+      </div>
+      <div style="text-align:right">
+        <div class="spread-label">RAW SPREAD</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--muted)" id="rawspread">$0.00</div>
+      </div>
+    </div>
+    <div class="bias-track">
+      <div class="bias-fill" id="bf" style="width:50%;background:var(--dim)"></div>
+      <div class="bias-center"></div>
+    </div>
+    <div class="bias-labels"><span>◄ DOWN BIAS</span><span id="bd">neutral</span><span>UP BIAS ►</span></div>
+    <div class="spread-meta">
+      <span>bias: <b id="bv">0.00</b></span>
+      <span>threshold: <b>$<span id="thr">2</span></b></span>
+      <span>ticks: <b id="tv">0</b></span>
+    </div>
   </div>
-  <div class="bc"><div class="ch"><div class="cl">BTC PRICE (TICKS)</div></div><canvas id="pch" height="75"></canvas></div>
-  <div class="bc"><div class="ch"><div class="cl">DEVIATION CHART</div></div><canvas id="dch" height="75"></canvas></div>
+
+  <!-- Stats -->
   <div class="stats">
-    <div class="sb"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
-    <div class="sb"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
-    <div class="sb"><div class="sv" id="md">0.00</div><div class="sl">MAX DEV $</div></div>
+    <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
+    <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
+    <div class="sbox"><div class="sv" id="md">0.00</div><div class="sl">MAX DEV $</div></div>
   </div>
-  <div class="bc"><div class="lt">EVENT LOG</div><div id="lg"></div></div>
+
+  <!-- Log -->
+  <div class="log-card">
+    <div class="lt">EVENT LOG</div>
+    <div id="lg"></div>
+  </div>
 </main>
-<footer>LAGSCOPE v5.0 · BTC DISLOCATION MONITOR</footer>
+<footer>LAGSCOPE v6.0 · BTC DISLOCATION MONITOR</footer>
+
 <script>
-const MX=120,BW=100,CD=60000;
+const MX=150;
 const $=id=>document.getElementById(id);
-let bp=null,pp=null,sh=[],ph=[],dh=[],bh=[],tc=0,sc=0,md=0,lst=0,lsig=null;
-let pC,dC;
-function st(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
+let binHist=[],polyHist=[],devHist=[],biasHist=[];
+let bp=null,pp=null,sc=0,lsig=null;
+let mCvs;
+
+function status(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
 function log(m,c){const l=$('lg'),e=document.createElement('div');e.className='le '+(c||'');e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;l.insertBefore(e,l.firstChild);while(l.children.length>20)l.removeChild(l.lastChild);}
-function ic(id,h){const c=$(id),d=window.devicePixelRatio||1;c.width=c.parentElement.clientWidth*d;c.height=h*d;c.style.height=h+'px';const x=c.getContext('2d');x.scale(d,d);return{x,w:c.parentElement.clientWidth,h};}
-function dl(x,data,w,h,col){if(data.length<2)return;const mn=Math.min(...data),mx=Math.max(...data),r=mx-mn||1,p=6;x.clearRect(0,0,w,h);x.beginPath();x.strokeStyle=col;x.lineWidth=1.5;x.lineJoin='round';data.forEach((v,i)=>{const px=(i/(data.length-1))*w,py=h-p-((v-mn)/r)*(h-p*2);i===0?x.moveTo(px,py):x.lineTo(px,py);});x.stroke();}
-function dd(x,dev,bias,w,h){if(dev.length<2)return;const T=parseFloat($('thr').textContent)||2;const all=[...dev,...bias,T,-T],mn=Math.min(...all),mx=Math.max(...all),r=mx-mn||1,p=6;x.clearRect(0,0,w,h);const zy=h-p-((0-mn)/r)*(h-p*2);x.strokeStyle='rgba(74,88,112,0.4)';x.lineWidth=1;x.setLineDash([4,4]);x.beginPath();x.moveTo(0,zy);x.lineTo(w,zy);x.stroke();[T,-T].forEach(v=>{const y=h-p-((v-mn)/r)*(h-p*2);x.strokeStyle='rgba(255,204,0,0.3)';x.setLineDash([2,6]);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();});x.setLineDash([]);if(bias.length>=2){x.beginPath();x.strokeStyle='rgba(74,88,112,0.8)';x.lineWidth=1;bias.forEach((v,i)=>{const px=(i/(bias.length-1))*w,py=h-p-((v-mn)/r)*(h-p*2);i===0?x.moveTo(px,py):x.lineTo(px,py);});x.stroke();}for(let i=1;i<dev.length;i++){const x0=((i-1)/(dev.length-1))*w,y0=h-p-((dev[i-1]-mn)/r)*(h-p*2),x1=(i/(dev.length-1))*w,y1=h-p-((dev[i]-mn)/r)*(h-p*2);x.beginPath();x.lineWidth=2;x.strokeStyle=Math.abs(dev[i])>=T?(dev[i]>0?'#00ff88':'#ff3b5c'):'#ffcc00';x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();}}
-function render(){if(pC)dl(pC.x,ph,pC.w,pC.h,'#4a9eff');if(dC)dd(dC.x,dh,bh,dC.w,dC.h);}
+
+function initCanvas(id,h){
+  const c=$(id),dpr=window.devicePixelRatio||1;
+  c.width=c.parentElement.clientWidth*dpr;
+  c.height=h*dpr;
+  c.style.height=h+'px';
+  const ctx=c.getContext('2d');
+  ctx.scale(dpr,dpr);
+  return{ctx,w:c.parentElement.clientWidth,h};
+}
+
+function drawDualChart(cvs,binData,polyData,devData){
+  if(!cvs||binData.length<2)return;
+  const {ctx,w,h}=cvs;
+  ctx.clearRect(0,0,w,h);
+
+  const all=[...binData,...polyData];
+  const mn=Math.min(...all),mx=Math.max(...all),range=mx-mn||1;
+  const padT=12,padB=20,padL=8,padR=8;
+  const chartH=h-padT-padB;
+  const chartW=w-padL-padR;
+
+  const toX=i=>(i/(binData.length-1))*chartW+padL;
+  const toY=v=>padT+chartH-((v-mn)/range)*chartH;
+
+  // Grid lines
+  ctx.strokeStyle='rgba(26,32,48,0.8)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=padT+i*(chartH/4);
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
+  }
+
+  // Fill area between curves
+  if(binData.length===polyData.length){
+    ctx.beginPath();
+    binData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+    for(let i=polyData.length-1;i>=0;i--)ctx.lineTo(toX(i),toY(polyData[i]));
+    ctx.closePath();
+    ctx.fillStyle='rgba(255,204,0,0.06)';
+    ctx.fill();
+  }
+
+  // Polymarket line
+  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';
+  polyData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  ctx.stroke();
+
+  // Binance line
+  ctx.beginPath();ctx.strokeStyle='#4a9eff';ctx.lineWidth=2;ctx.lineJoin='round';
+  binData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  ctx.stroke();
+
+  // Current price dots
+  if(binData.length>0){
+    const lx=toX(binData.length-1);
+    ctx.beginPath();ctx.arc(lx,toY(binData[binData.length-1]),3,0,Math.PI*2);
+    ctx.fillStyle='#4a9eff';ctx.fill();
+  }
+  if(polyData.length>0){
+    const lx=toX(polyData.length-1);
+    ctx.beginPath();ctx.arc(lx,toY(polyData[polyData.length-1]),3,0,Math.PI*2);
+    ctx.fillStyle='#ffcc00';ctx.fill();
+  }
+
+  // Price labels on right
+  ctx.font=`${8*window.devicePixelRatio}px Space Mono`;
+  ctx.fillStyle='rgba(74,158,255,0.7)';ctx.textAlign='right';
+  if(binData.length>0)ctx.fillText('$'+binData[binData.length-1].toFixed(0),w-padR-2,toY(binData[binData.length-1])-4);
+  ctx.fillStyle='rgba(255,204,0,0.7)';
+  if(polyData.length>0)ctx.fillText('$'+polyData[polyData.length-1].toFixed(0),w-padR-2,toY(polyData[polyData.length-1])+10);
+}
 
 async function poll(){
   while(true){
@@ -101,56 +244,79 @@ async function poll(){
       if(!r.ok)throw new Error(r.status);
       const d=await r.json();
       $('thr').textContent=d.threshold||2;
+
       if(d.binance){
         const prev=bp;bp=d.binance;
         const chg=prev?bp-prev:0;
         $('bp').textContent='$'+bp.toFixed(0);
-        $('bs').textContent=(chg>=0?'+':'')+chg.toFixed(1);
-        const el=$('bp');el.className='val '+(chg>0?'fu':chg<0?'fd':'');
-        setTimeout(()=>el.className='val',300);
-        $('bc1').className='card '+(chg>0?'up':chg<0?'dn':'');
-        ph.push(bp);if(ph.length>MX)ph.shift();
-        st('live');
+        $('bs').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
+        const el=$('bp');el.className='pval '+(chg>0?'fu':chg<0?'fd':'');
+        setTimeout(()=>el.className='pval',400);
+        $('bc').className='pcard bin '+(chg>0?'up':chg<0?'dn':'');
+        binHist.push(bp);if(binHist.length>MX)binHist.shift();
+        status('live');
       }
+
       if(d.poly_mid){
-        const pm=d.poly_mid;
-        $('pp').textContent='$'+pm.toFixed(0);
-        $('ps').textContent=pm>(bp||0)?'▲ futures premium':'▼ futures discount';
-        $('pc1').className='card '+(pm>(bp||0)?'up':'dn');
+        const prev=pp;pp=d.poly_mid;
+        const chg=prev?pp-prev:0;
+        $('pp').textContent='$'+pp.toFixed(0);
+        $('ps').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
+        $('pc').className='pcard poly '+(pp>bp?'up':'dn');
+        polyHist.push(pp);if(polyHist.length>MX)polyHist.shift();
       }
-      const dev=d.deviation||0,bias=d.bias||0;
+
+      // Raw spread
+      if(bp&&pp){
+        const raw=pp-bp;
+        $('rawspread').textContent=(raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
+        $('rawspread').style.color=raw>0?'var(--up)':raw<0?'var(--down)':'var(--muted)';
+      }
+
+      const dev=d.deviation||0,bias=d.bias||0,thr=d.threshold||2;
       $('dv').textContent='$'+(dev>=0?'+':'')+dev.toFixed(2);
-      $('dv').style.color=Math.abs(dev)>=(d.threshold||2)?(dev>0?'var(--up)':'var(--down)'):'var(--text)';
-      $('bv').textContent=bias.toFixed(2);
+      $('dv').style.color=Math.abs(dev)>=thr?(dev>0?'var(--up)':'var(--down)'):'var(--text)';
+      $('bv').textContent=(bias>=0?'+':'')+bias.toFixed(2);
       $('tv').textContent=d.tick_count||0;
       $('tc').textContent=d.tick_count||0;
-      $('sc').textContent=d.sig_count||0;
       $('md').textContent=(d.max_dev||0).toFixed(2);
-      const norm=Math.max(0,Math.min(100,50+bias*2));
+
+      // Bias meter
+      const norm=Math.max(5,Math.min(95,50+bias*3));
       const f=$('bf');
-      if(bias>0.5){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='UP +$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
-      else if(bias<-0.5){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='DOWN $'+bias.toFixed(2);$('bd').style.color='var(--down)';}
+      if(bias>0.3){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='+$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
+      else if(bias<-0.3){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='$'+bias.toFixed(2);$('bd').style.color='var(--down)';}
       else{f.style.width='50%';f.style.background='var(--dim)';$('bd').textContent='neutral';$('bd').style.color='var(--muted)';}
-      dh.push(dev);bh.push(bias);if(dh.length>MX)dh.shift();if(bh.length>MX)bh.shift();
+
+      // Signal
+      if(d.sig_count>sc){
+        sc=d.sig_count;$('sc').textContent=sc;
+      }
       if(d.last_signal&&d.last_signal.time!==lsig){
         lsig=d.last_signal.time;
         const s=d.last_signal,dir=s.direction;
-        const b=$('ban');b.textContent=`⚡ СИГНАЛ ${dir} | $${Math.abs(s.deviation).toFixed(2)}`;
+        const b=$('ban');
+        b.textContent=`⚡ РАСКОРРЕЛЯЦИЯ ${dir} · $${Math.abs(s.deviation).toFixed(2)} отклонение`;
         b.className='ban show '+(dir==='UP'?'up':'dn');
-        setTimeout(()=>b.className='ban',6000);
-        log(`SIGNAL ${dir} dev=$${s.deviation} BIN $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
+        setTimeout(()=>b.className='ban',8000);
+        log(`СИГНАЛ ${dir} | dev=$${s.deviation} | BIN $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
       }
-      render();
-    }catch(e){st('error');}
+
+      // Draw dual chart
+      if(mCvs)drawDualChart(mCvs,binHist,polyHist,devHist);
+
+    }catch(e){status('error');}
     await new Promise(r=>setTimeout(r,1000));
   }
 }
+
 window.addEventListener('load',()=>{
-  pC=ic('pch',75);dC=ic('dch',75);
-  st('connecting');log('Starting...');
+  mCvs=initCanvas('mainChart',140);
+  status('connecting');
+  log('Connecting to price feeds...');
   poll();
 });
-window.addEventListener('resize',()=>{pC=ic('pch',75);dC=ic('dch',75);});
+window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',140));
 </script>
 </body>
 </html>
