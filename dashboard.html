@@ -19,11 +19,9 @@ header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .slbl{font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;}
 main{padding:14px;display:flex;flex-direction:column;gap:12px;}
-
-/* Price cards */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:border-color 0.3s;}
-.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transition:background 0.3s;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
 .pcard.bin::before{background:var(--neutral);}
 .pcard.poly::before{background:var(--poly);}
 .pcard.up{border-color:rgba(0,255,136,0.3);}
@@ -33,49 +31,36 @@ main{padding:14px;display:flex;flex-direction:column;gap:12px;}
 .pval{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1;}
 .pval.fu{color:var(--up);}.pval.fd{color:var(--down);}
 .psub{font-size:10px;color:var(--muted);margin-top:5px;}
-
-/* Signal banner */
 .ban{display:none;border-radius:10px;padding:14px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;text-align:center;letter-spacing:0.05em;}
 .ban.show{display:block;animation:fb 0.4s ease;}
 .ban.up{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#000;}
 .ban.dn{background:linear-gradient(135deg,#ff3b5c,#cc2040);color:#fff;}
 @keyframes fb{0%{transform:scale(0.96);opacity:0}100%{transform:scale(1);opacity:1}}
-
-/* Main chart */
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .chart-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
 .legend{display:flex;gap:14px;}
 .leg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
 .legdot{width:8px;height:3px;border-radius:2px;}
-
-/* Spread indicator */
 .spread-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .spread-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .spread-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;transition:color 0.3s;}
 .spread-label{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
 .spread-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;}
-
-/* Bias bar */
 .bias-track{height:4px;background:var(--border);border-radius:2px;margin:10px 0 6px;position:relative;}
 .bias-fill{height:100%;border-radius:2px;transition:width 0.5s,background 0.3s;}
 .bias-center{position:absolute;left:50%;top:-4px;width:1px;height:12px;background:var(--dim);}
 .bias-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);letter-spacing:0.1em;}
-
-/* Stats */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
 .sv{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;}
 .sl{font-size:8px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-top:4px;}
-
-/* Log */
 .log-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .lt{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
 #lg{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;}
 .le{font-size:10px;color:var(--muted);border-left:2px solid var(--border);padding-left:8px;line-height:1.6;}
 .le.ul{border-color:var(--up);color:var(--up);}
 .le.dl{border-color:var(--down);color:var(--down);}
-
 canvas{width:100% !important;}
 footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spacing:0.1em;}
 </style>
@@ -90,8 +75,6 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
 </header>
 <main>
   <div class="ban" id="ban">SIGNAL</div>
-
-  <!-- Price cards -->
   <div class="row">
     <div class="pcard bin" id="bc">
       <div class="plbl"><span class="pdot" style="background:var(--neutral)"></span>BINANCE</div>
@@ -101,11 +84,9 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
     <div class="pcard poly" id="pc">
       <div class="plbl"><span class="pdot" style="background:var(--poly)"></span>POLYMARKET</div>
       <div class="pval" id="pp">—</div>
-      <div class="psub" id="ps">market price</div>
+      <div class="psub" id="ps">delayed 2s</div>
     </div>
   </div>
-
-  <!-- MAIN DUAL CHART -->
   <div class="chart-card">
     <div class="chart-header">
       <div class="chart-title">PRICE LAG MONITOR</div>
@@ -114,10 +95,8 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
         <div class="leg"><div class="legdot" style="background:var(--poly)"></div>POLYMARKET</div>
       </div>
     </div>
-    <canvas id="mainChart" height="140"></canvas>
+    <canvas id="mainChart" height="160"></canvas>
   </div>
-
-  <!-- Spread / Deviation -->
   <div class="spread-card">
     <div class="spread-row">
       <div>
@@ -133,34 +112,36 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
       <div class="bias-fill" id="bf" style="width:50%;background:var(--dim)"></div>
       <div class="bias-center"></div>
     </div>
-    <div class="bias-labels"><span>◄ DOWN BIAS</span><span id="bd">neutral</span><span>UP BIAS ►</span></div>
+    <div class="bias-labels"><span>◄ DOWN</span><span id="bd">neutral</span><span>UP ►</span></div>
     <div class="spread-meta">
       <span>bias: <b id="bv">0.00</b></span>
       <span>threshold: <b>$<span id="thr">2</span></b></span>
       <span>ticks: <b id="tv">0</b></span>
     </div>
   </div>
-
-  <!-- Stats -->
   <div class="stats">
     <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
     <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
     <div class="sbox"><div class="sv" id="md">0.00</div><div class="sl">MAX DEV $</div></div>
   </div>
-
-  <!-- Log -->
   <div class="log-card">
     <div class="lt">EVENT LOG</div>
     <div id="lg"></div>
   </div>
 </main>
-<footer>LAGSCOPE v6.0 · BTC DISLOCATION MONITOR</footer>
+<footer>LAGSCOPE v7.0 · BTC DISLOCATION MONITOR</footer>
 
 <script>
 const MX=150;
 const $=id=>document.getElementById(id);
-let binHist=[],polyHist=[],devHist=[],biasHist=[];
-let bp=null,pp=null,sc=0,lsig=null;
+
+// Binance history (live)
+let binHist=[];
+// Poly history (delayed 2s = 2 ticks behind binance)
+let polyBuffer=[];  // buffer to create 2s delay
+let polyHist=[];
+
+let bp=null,pp=null,scnt=0,lsig=null;
 let mCvs;
 
 function status(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
@@ -169,72 +150,72 @@ function log(m,c){const l=$('lg'),e=document.createElement('div');e.className='l
 function initCanvas(id,h){
   const c=$(id),dpr=window.devicePixelRatio||1;
   c.width=c.parentElement.clientWidth*dpr;
-  c.height=h*dpr;
-  c.style.height=h+'px';
-  const ctx=c.getContext('2d');
-  ctx.scale(dpr,dpr);
+  c.height=h*dpr;c.style.height=h+'px';
+  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
   return{ctx,w:c.parentElement.clientWidth,h};
 }
 
-function drawDualChart(cvs,binData,polyData,devData){
+function drawDualChart(cvs,binData,polyData){
   if(!cvs||binData.length<2)return;
-  const {ctx,w,h}=cvs;
+  const{ctx,w,h}=cvs;
   ctx.clearRect(0,0,w,h);
 
-  const all=[...binData,...polyData];
-  const mn=Math.min(...all),mx=Math.max(...all),range=mx-mn||1;
-  const padT=12,padB=20,padL=8,padR=8;
+  const len=Math.min(binData.length,polyData.length);
+  if(len<2)return;
+
+  const bSlice=binData.slice(-len);
+  const pSlice=polyData.slice(-len);
+
+  // Normalize both around their combined mean to show them close together
+  const allVals=[...bSlice,...pSlice];
+  const mean=allVals.reduce((a,b)=>a+b,0)/allVals.length;
+
+  // Scale: show ±0.5% range around mean so lines are close
+  const range=mean*0.006; // 0.6% range = lines stay close
+  const mn=mean-range,mx=mean+range;
+
+  const padT=8,padB=8,padL=4,padR=4;
   const chartH=h-padT-padB;
   const chartW=w-padL-padR;
 
-  const toX=i=>(i/(binData.length-1))*chartW+padL;
-  const toY=v=>padT+chartH-((v-mn)/range)*chartH;
+  const toX=i=>(i/(len-1))*chartW+padL;
+  const toY=v=>padT+chartH-Math.max(0,Math.min(1,(v-mn)/(mx-mn)))*chartH;
 
-  // Grid lines
-  ctx.strokeStyle='rgba(26,32,48,0.8)';ctx.lineWidth=1;
-  for(let i=0;i<=4;i++){
-    const y=padT+i*(chartH/4);
+  // Subtle grid
+  ctx.strokeStyle='rgba(26,32,48,0.6)';ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){
+    const y=padT+i*(chartH/3);
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
   }
 
-  // Fill area between curves
-  if(binData.length===polyData.length){
-    ctx.beginPath();
-    binData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
-    for(let i=polyData.length-1;i>=0;i--)ctx.lineTo(toX(i),toY(polyData[i]));
-    ctx.closePath();
-    ctx.fillStyle='rgba(255,204,0,0.06)';
-    ctx.fill();
-  }
+  // Fill between lines
+  ctx.beginPath();
+  bSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  for(let i=len-1;i>=0;i--)ctx.lineTo(toX(i),toY(pSlice[i]));
+  ctx.closePath();
 
-  // Polymarket line
-  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';
-  polyData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  // Color fill based on who's ahead
+  const lastSpread=bSlice[len-1]-pSlice[len-1];
+  ctx.fillStyle=lastSpread>0?'rgba(0,255,136,0.08)':'rgba(255,59,92,0.08)';
+  ctx.fill();
+
+  // Polymarket line (yellow, dashed slightly behind)
+  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.85)';ctx.lineWidth=1.5;ctx.lineJoin='round';
+  pSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // Binance line
+  // Binance line (blue, on top)
   ctx.beginPath();ctx.strokeStyle='#4a9eff';ctx.lineWidth=2;ctx.lineJoin='round';
-  binData.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  bSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // Current price dots
-  if(binData.length>0){
-    const lx=toX(binData.length-1);
-    ctx.beginPath();ctx.arc(lx,toY(binData[binData.length-1]),3,0,Math.PI*2);
-    ctx.fillStyle='#4a9eff';ctx.fill();
-  }
-  if(polyData.length>0){
-    const lx=toX(polyData.length-1);
-    ctx.beginPath();ctx.arc(lx,toY(polyData[polyData.length-1]),3,0,Math.PI*2);
-    ctx.fillStyle='#ffcc00';ctx.fill();
-  }
+  // End dots only — no price labels
+  const lx=toX(len-1);
+  ctx.beginPath();ctx.arc(lx,toY(bSlice[len-1]),3.5,0,Math.PI*2);
+  ctx.fillStyle='#4a9eff';ctx.fill();
 
-  // Price labels on right
-  ctx.font=`${8*window.devicePixelRatio}px Space Mono`;
-  ctx.fillStyle='rgba(74,158,255,0.7)';ctx.textAlign='right';
-  if(binData.length>0)ctx.fillText('$'+binData[binData.length-1].toFixed(0),w-padR-2,toY(binData[binData.length-1])-4);
-  ctx.fillStyle='rgba(255,204,0,0.7)';
-  if(polyData.length>0)ctx.fillText('$'+polyData[polyData.length-1].toFixed(0),w-padR-2,toY(polyData[polyData.length-1])+10);
+  ctx.beginPath();ctx.arc(lx,toY(pSlice[len-1]),3.5,0,Math.PI*2);
+  ctx.fillStyle='#ffcc00';ctx.fill();
 }
 
 async function poll(){
@@ -245,6 +226,7 @@ async function poll(){
       const d=await r.json();
       $('thr').textContent=d.threshold||2;
 
+      // Binance — live
       if(d.binance){
         const prev=bp;bp=d.binance;
         const chg=prev?bp-prev:0;
@@ -257,20 +239,23 @@ async function poll(){
         status('live');
       }
 
+      // MEXC/Poly — add to buffer, display with 2-tick delay
       if(d.poly_mid){
-        const prev=pp;pp=d.poly_mid;
-        const chg=prev?pp-prev:0;
+        polyBuffer.push(d.poly_mid);
+        // Use value from 2 ticks ago for display
+        const delayedVal = polyBuffer.length>2 ? polyBuffer[polyBuffer.length-3] : polyBuffer[0];
+        pp = delayedVal;
         $('pp').textContent='$'+pp.toFixed(0);
-        $('ps').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
-        $('pc').className='pcard poly '+(pp>bp?'up':'dn');
+        $('pc').className='pcard poly '+(pp>(bp||0)?'up':'dn');
         polyHist.push(pp);if(polyHist.length>MX)polyHist.shift();
+        if(polyBuffer.length>MX+5)polyBuffer=polyBuffer.slice(-MX-5);
       }
 
       // Raw spread
       if(bp&&pp){
-        const raw=pp-bp;
+        const raw=bp-pp;
         $('rawspread').textContent=(raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
-        $('rawspread').style.color=raw>0?'var(--up)':raw<0?'var(--down)':'var(--muted)';
+        $('rawspread').style.color=Math.abs(raw)>2?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
       }
 
       const dev=d.deviation||0,bias=d.bias||0,thr=d.threshold||2;
@@ -281,29 +266,24 @@ async function poll(){
       $('tc').textContent=d.tick_count||0;
       $('md').textContent=(d.max_dev||0).toFixed(2);
 
-      // Bias meter
       const norm=Math.max(5,Math.min(95,50+bias*3));
       const f=$('bf');
       if(bias>0.3){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='+$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
       else if(bias<-0.3){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='$'+bias.toFixed(2);$('bd').style.color='var(--down)';}
       else{f.style.width='50%';f.style.background='var(--dim)';$('bd').textContent='neutral';$('bd').style.color='var(--muted)';}
 
-      // Signal
-      if(d.sig_count>sc){
-        sc=d.sig_count;$('sc').textContent=sc;
-      }
+      if(d.sig_count>scnt){scnt=d.sig_count;$('sc').textContent=scnt;}
       if(d.last_signal&&d.last_signal.time!==lsig){
         lsig=d.last_signal.time;
         const s=d.last_signal,dir=s.direction;
         const b=$('ban');
-        b.textContent=`⚡ РАСКОРРЕЛЯЦИЯ ${dir} · $${Math.abs(s.deviation).toFixed(2)} отклонение`;
+        b.textContent=`⚡ РАСКОРРЕЛЯЦИЯ ${dir} · $${Math.abs(s.deviation).toFixed(2)}`;
         b.className='ban show '+(dir==='UP'?'up':'dn');
         setTimeout(()=>b.className='ban',8000);
-        log(`СИГНАЛ ${dir} | dev=$${s.deviation} | BIN $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
+        log(`СИГНАЛ ${dir} | dev=$${s.deviation} | $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
       }
 
-      // Draw dual chart
-      if(mCvs)drawDualChart(mCvs,binHist,polyHist,devHist);
+      if(mCvs)drawDualChart(mCvs,binHist,polyHist);
 
     }catch(e){status('error');}
     await new Promise(r=>setTimeout(r,1000));
@@ -311,12 +291,11 @@ async function poll(){
 }
 
 window.addEventListener('load',()=>{
-  mCvs=initCanvas('mainChart',140);
-  status('connecting');
-  log('Connecting to price feeds...');
+  mCvs=initCanvas('mainChart',160);
+  status('connecting');log('Connecting...');
   poll();
 });
-window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',140));
+window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',160));
 </script>
 </body>
 </html>
