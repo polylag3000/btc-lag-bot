@@ -31,17 +31,17 @@ main{padding:14px;display:flex;flex-direction:column;gap:12px;}
 .pval{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1;}
 .pval.fu{color:var(--up);}.pval.fd{color:var(--down);}
 .psub{font-size:10px;color:var(--muted);margin-top:5px;}
-.ban{display:none;border-radius:10px;padding:14px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;text-align:center;letter-spacing:0.05em;}
+.ban{display:none;border-radius:10px;padding:14px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;text-align:center;}
 .ban.show{display:block;animation:fb 0.4s ease;}
 .ban.up{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#000;}
 .ban.dn{background:linear-gradient(135deg,#ff3b5c,#cc2040);color:#fff;}
 @keyframes fb{0%{transform:scale(0.96);opacity:0}100%{transform:scale(1);opacity:1}}
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .chart-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
 .legend{display:flex;gap:14px;}
 .leg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
-.legdot{width:8px;height:3px;border-radius:2px;}
+.legdot{width:10px;height:2px;border-radius:1px;display:inline-block;}
 .spread-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .spread-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .spread-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;transition:color 0.3s;}
@@ -50,7 +50,7 @@ main{padding:14px;display:flex;flex-direction:column;gap:12px;}
 .bias-track{height:4px;background:var(--border);border-radius:2px;margin:10px 0 6px;position:relative;}
 .bias-fill{height:100%;border-radius:2px;transition:width 0.5s,background 0.3s;}
 .bias-center{position:absolute;left:50%;top:-4px;width:1px;height:12px;background:var(--dim);}
-.bias-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);letter-spacing:0.1em;}
+.bias-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
 .sv{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;}
@@ -62,7 +62,7 @@ main{padding:14px;display:flex;flex-direction:column;gap:12px;}
 .le.ul{border-color:var(--up);color:var(--up);}
 .le.dl{border-color:var(--down);color:var(--down);}
 canvas{width:100% !important;}
-footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spacing:0.1em;}
+footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
 </style>
 </head>
 <body>
@@ -79,24 +79,27 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
     <div class="pcard bin" id="bc">
       <div class="plbl"><span class="pdot" style="background:var(--neutral)"></span>BINANCE</div>
       <div class="pval" id="bp">—</div>
-      <div class="psub" id="bs">spot price</div>
+      <div class="psub" id="bs">live</div>
     </div>
     <div class="pcard poly" id="pc">
       <div class="plbl"><span class="pdot" style="background:var(--poly)"></span>POLYMARKET</div>
       <div class="pval" id="pp">—</div>
-      <div class="psub" id="ps">delayed 2s</div>
+      <div class="psub">delayed 5s</div>
     </div>
   </div>
+
+  <!-- MAIN LAG CHART -->
   <div class="chart-card">
     <div class="chart-header">
-      <div class="chart-title">PRICE LAG MONITOR</div>
+      <div class="chart-title">⚡ LIVE LAG MONITOR</div>
       <div class="legend">
         <div class="leg"><div class="legdot" style="background:var(--neutral)"></div>BINANCE</div>
-        <div class="leg"><div class="legdot" style="background:var(--poly)"></div>POLYMARKET</div>
+        <div class="leg"><div class="legdot" style="background:var(--poly)"></div>POLY (5s lag)</div>
       </div>
     </div>
-    <canvas id="mainChart" height="160"></canvas>
+    <canvas id="mainChart" height="180"></canvas>
   </div>
+
   <div class="spread-card">
     <div class="spread-row">
       <div>
@@ -105,7 +108,7 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
       </div>
       <div style="text-align:right">
         <div class="spread-label">RAW SPREAD</div>
-        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--muted)" id="rawspread">$0.00</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--muted)" id="rawspread">$0.00</div>
       </div>
     </div>
     <div class="bias-track">
@@ -114,11 +117,12 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
     </div>
     <div class="bias-labels"><span>◄ DOWN</span><span id="bd">neutral</span><span>UP ►</span></div>
     <div class="spread-meta">
-      <span>bias: <b id="bv">0.00</b></span>
-      <span>threshold: <b>$<span id="thr">2</span></b></span>
+      <span>bias: <b id="bv">—</b></span>
+      <span>threshold: $<b id="thr">2</b></span>
       <span>ticks: <b id="tv">0</b></span>
     </div>
   </div>
+
   <div class="stats">
     <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
     <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
@@ -129,136 +133,166 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);letter-spac
     <div id="lg"></div>
   </div>
 </main>
-<footer>LAGSCOPE v7.0 · BTC DISLOCATION MONITOR</footer>
+<footer>LAGSCOPE v8.0 · BTC DISLOCATION MONITOR</footer>
 
 <script>
-const MX=150;
+const MX = 60; // show last 60 ticks = 60 seconds
+const LAG = 5; // poly delayed 5 ticks
 const $=id=>document.getElementById(id);
 
-// Binance history (live)
-let binHist=[];
-// Poly history (delayed 2s = 2 ticks behind binance)
-let polyBuffer=[];  // buffer to create 2s delay
-let polyHist=[];
+let binHist = [];   // raw binance prices
+let polyBuf = [];   // raw poly prices (buffer)
+let binDisp = [];   // display: normalized % change from baseline
+let polyDisp= [];   // display: normalized % change, delayed
 
-let bp=null,pp=null,scnt=0,lsig=null;
-let mCvs;
+let bp=null, pp=null, scnt=0, lsig=null, mCvs;
+let baseline = null; // rolling baseline for normalization
 
 function status(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
 function log(m,c){const l=$('lg'),e=document.createElement('div');e.className='le '+(c||'');e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;l.insertBefore(e,l.firstChild);while(l.children.length>20)l.removeChild(l.lastChild);}
 
 function initCanvas(id,h){
   const c=$(id),dpr=window.devicePixelRatio||1;
-  c.width=c.parentElement.clientWidth*dpr;
-  c.height=h*dpr;c.style.height=h+'px';
+  c.width=c.parentElement.clientWidth*dpr;c.height=h*dpr;c.style.height=h+'px';
   const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
   return{ctx,w:c.parentElement.clientWidth,h};
 }
 
-function drawDualChart(cvs,binData,polyData){
-  if(!cvs||binData.length<2)return;
-  const{ctx,w,h}=cvs;
+function drawChart(cvs, binPct, polyPct){
+  if(!cvs || binPct.length < 2) return;
+  const {ctx,w,h} = cvs;
   ctx.clearRect(0,0,w,h);
 
-  const len=Math.min(binData.length,polyData.length);
-  if(len<2)return;
+  const len = Math.min(binPct.length, polyPct.length);
+  if(len < 2) return;
 
-  const bSlice=binData.slice(-len);
-  const pSlice=polyData.slice(-len);
+  const bS = binPct.slice(-len);
+  const pS = polyPct.slice(-len);
 
-  // Normalize both around their combined mean to show them close together
-  const allVals=[...bSlice,...pSlice];
-  const mean=allVals.reduce((a,b)=>a+b,0)/allVals.length;
+  // Find range — use TIGHT scale so moves look dramatic
+  const all = [...bS, ...pS];
+  const mn = Math.min(...all);
+  const mx = Math.max(...all);
+  let range = mx - mn;
+  // Minimum range = 0.05% so flat markets still look somewhat active
+  if(range < 0.05) range = 0.05;
+  // Add 15% padding top/bottom
+  const pad = range * 0.15;
+  const vMin = mn - pad;
+  const vMax = mx + pad;
+  const vRange = vMax - vMin;
 
-  // Scale: show ±0.5% range around mean so lines are close
-  const range=mean*0.006; // 0.6% range = lines stay close
-  const mn=mean-range,mx=mean+range;
+  const padL=4,padR=4,padT=10,padB=10;
+  const cW = w-padL-padR;
+  const cH = h-padT-padB;
 
-  const padT=8,padB=8,padL=4,padR=4;
-  const chartH=h-padT-padB;
-  const chartW=w-padL-padR;
+  const toX = i => padL + (i/(len-1))*cW;
+  const toY = v => padT + cH - ((v-vMin)/vRange)*cH;
 
-  const toX=i=>(i/(len-1))*chartW+padL;
-  const toY=v=>padT+chartH-Math.max(0,Math.min(1,(v-mn)/(mx-mn)))*chartH;
+  // Zero line (baseline)
+  const zy = toY(0);
+  ctx.strokeStyle='rgba(58,69,96,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+  ctx.beginPath();ctx.moveTo(padL,zy);ctx.lineTo(w-padR,zy);ctx.stroke();
+  ctx.setLineDash([]);
 
-  // Subtle grid
-  ctx.strokeStyle='rgba(26,32,48,0.6)';ctx.lineWidth=1;
-  for(let i=0;i<=3;i++){
-    const y=padT+i*(chartH/3);
-    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
-  }
-
-  // Fill between lines
+  // Fill area between lines — colored by direction
   ctx.beginPath();
-  bSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
-  for(let i=len-1;i>=0;i--)ctx.lineTo(toX(i),toY(pSlice[i]));
+  bS.forEach((v,i) => i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  for(let i=len-1;i>=0;i--) ctx.lineTo(toX(i),toY(pS[i]));
   ctx.closePath();
+  const lastDiff = bS[len-1] - pS[len-1];
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  if(lastDiff > 0){
+    grad.addColorStop(0,'rgba(0,255,136,0.15)');
+    grad.addColorStop(1,'rgba(0,255,136,0.02)');
+  } else {
+    grad.addColorStop(0,'rgba(255,59,92,0.02)');
+    grad.addColorStop(1,'rgba(255,59,92,0.15)');
+  }
+  ctx.fillStyle=grad;ctx.fill();
 
-  // Color fill based on who's ahead
-  const lastSpread=bSlice[len-1]-pSlice[len-1];
-  ctx.fillStyle=lastSpread>0?'rgba(0,255,136,0.08)':'rgba(255,59,92,0.08)';
-  ctx.fill();
-
-  // Polymarket line (yellow, dashed slightly behind)
-  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.85)';ctx.lineWidth=1.5;ctx.lineJoin='round';
-  pSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  // Poly line — yellow, slightly thicker, drawn first
+  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.9)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+  pS.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // Binance line (blue, on top)
-  ctx.beginPath();ctx.strokeStyle='#4a9eff';ctx.lineWidth=2;ctx.lineJoin='round';
-  bSlice.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  // Binance line — bright blue, on top
+  ctx.beginPath();ctx.strokeStyle='#4a9eff';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  bS.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // End dots only — no price labels
-  const lx=toX(len-1);
-  ctx.beginPath();ctx.arc(lx,toY(bSlice[len-1]),3.5,0,Math.PI*2);
+  // End dots
+  const lx = toX(len-1);
+  ctx.beginPath();ctx.arc(lx,toY(bS[len-1]),4,0,Math.PI*2);
   ctx.fillStyle='#4a9eff';ctx.fill();
-
-  ctx.beginPath();ctx.arc(lx,toY(pSlice[len-1]),3.5,0,Math.PI*2);
+  ctx.beginPath();ctx.arc(lx,toY(pS[len-1]),4,0,Math.PI*2);
   ctx.fillStyle='#ffcc00';ctx.fill();
+
+  // Current % labels on right edge
+  ctx.font=`bold ${9*window.devicePixelRatio}px Space Mono`;
+  ctx.textAlign='right';
+  const bPct = bS[len-1];
+  const pPct = pS[len-1];
+  ctx.fillStyle='rgba(74,158,255,0.9)';
+  ctx.fillText((bPct>=0?'+':'')+bPct.toFixed(3)+'%', w-padR-2, toY(bPct)-(bPct>pPct?8:-2));
+  ctx.fillStyle='rgba(255,204,0,0.9)';
+  ctx.fillText((pPct>=0?'+':'')+pPct.toFixed(3)+'%', w-padR-2, toY(pPct)+(pPct<=bPct?10:-2));
 }
 
 async function poll(){
   while(true){
     try{
-      const r=await fetch('/api/data');
-      if(!r.ok)throw new Error(r.status);
-      const d=await r.json();
-      $('thr').textContent=d.threshold||2;
+      const r = await fetch('/api/data');
+      if(!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      $('thr').textContent = d.threshold||2;
 
-      // Binance — live
+      // Binance
       if(d.binance){
-        const prev=bp;bp=d.binance;
-        const chg=prev?bp-prev:0;
-        $('bp').textContent='$'+bp.toFixed(0);
-        $('bs').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
+        const prev = bp; bp = d.binance;
+        const chg = prev ? bp-prev : 0;
+        $('bp').textContent = '$'+bp.toFixed(0);
+        $('bs').textContent = (chg>=0?'+':'')+chg.toFixed(1)+' USD';
         const el=$('bp');el.className='pval '+(chg>0?'fu':chg<0?'fd':'');
         setTimeout(()=>el.className='pval',400);
         $('bc').className='pcard bin '+(chg>0?'up':chg<0?'dn':'');
-        binHist.push(bp);if(binHist.length>MX)binHist.shift();
+        binHist.push(bp);
+        if(binHist.length>MX+LAG+5) binHist.shift();
         status('live');
       }
 
-      // MEXC/Poly — add to buffer, display with 2-tick delay
+      // Poly — buffer with LAG delay
       if(d.poly_mid){
-        polyBuffer.push(d.poly_mid);
-        // Use value from 2 ticks ago for display
-        const delayedVal = polyBuffer.length>2 ? polyBuffer[polyBuffer.length-3] : polyBuffer[0];
-        pp = delayedVal;
-        $('pp').textContent='$'+pp.toFixed(0);
-        $('pc').className='pcard poly '+(pp>(bp||0)?'up':'dn');
-        polyHist.push(pp);if(polyHist.length>MX)polyHist.shift();
-        if(polyBuffer.length>MX+5)polyBuffer=polyBuffer.slice(-MX-5);
+        polyBuf.push(d.poly_mid);
+        if(polyBuf.length>MX+LAG+5) polyBuf.shift();
+        const delayedIdx = polyBuf.length - 1 - LAG;
+        if(delayedIdx >= 0){
+          pp = polyBuf[delayedIdx];
+          $('pp').textContent = '$'+pp.toFixed(0);
+          $('pc').className = 'pcard poly '+(pp>(bp||0)?'up':'dn');
+        }
+      }
+
+      // Build % change display arrays
+      // Use a rolling 60-tick window, normalize to % change from window start
+      if(binHist.length >= 2){
+        const winB = binHist.slice(-MX);
+        const winP = polyBuf.slice(0,-(LAG||1)||undefined).slice(-MX);
+        const ref = winB[0] || 1;
+        binDisp = winB.map(v=>((v-ref)/ref)*100);
+        polyDisp = winP.map(v=>((v-ref)/ref)*100);
+        // Pad poly if shorter
+        while(polyDisp.length < binDisp.length) polyDisp.unshift(polyDisp[0]||0);
       }
 
       // Raw spread
-      if(bp&&pp){
-        const raw=bp-pp;
-        $('rawspread').textContent=(raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
-        $('rawspread').style.color=Math.abs(raw)>2?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
+      if(bp && pp){
+        const raw = bp - pp;
+        $('rawspread').textContent = (raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
+        $('rawspread').style.color = Math.abs(raw)>2?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
       }
 
-      const dev=d.deviation||0,bias=d.bias||0,thr=d.threshold||2;
+      const dev=d.deviation||0, bias=d.bias||0, thr=d.threshold||2;
       $('dv').textContent='$'+(dev>=0?'+':'')+dev.toFixed(2);
       $('dv').style.color=Math.abs(dev)>=thr?(dev>0?'var(--up)':'var(--down)'):'var(--text)';
       $('bv').textContent=(bias>=0?'+':'')+bias.toFixed(2);
@@ -283,19 +317,19 @@ async function poll(){
         log(`СИГНАЛ ${dir} | dev=$${s.deviation} | $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
       }
 
-      if(mCvs)drawDualChart(mCvs,binHist,polyHist);
+      if(mCvs) drawChart(mCvs, binDisp, polyDisp);
 
-    }catch(e){status('error');}
+    }catch(e){ status('error'); }
     await new Promise(r=>setTimeout(r,1000));
   }
 }
 
 window.addEventListener('load',()=>{
-  mCvs=initCanvas('mainChart',160);
+  mCvs=initCanvas('mainChart',180);
   status('connecting');log('Connecting...');
   poll();
 });
-window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',160));
+window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',180));
 </script>
 </body>
 </html>
