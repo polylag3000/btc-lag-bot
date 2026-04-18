@@ -156,17 +156,22 @@ function drawChart(cvs, bData, pData){
   const bS=bData.slice(-len);
   const pS=pData.slice(-len);
 
-  // Key insight: subtract bias from poly to center lines together
-  // Then scale so normal deviation = ~1px, signal = visible gap
-  // Use tight fixed scale in $ terms: ±15$ range shows natural proximity
-  const SCALE = 15; // ±$15 fills chart height — lines close by default
-
   const padL=4,padR=4,padT=12,padB=12;
   const cW=w-padL-padR, cH=h-padT-padB;
 
-  // Center = 0 (bias-corrected spread midpoint)
+  // Always auto-center: find actual range of data and fit to chart
+  const allVals=[...bS,...pS];
+  const dataMin=Math.min(...allVals);
+  const dataMax=Math.max(...allVals);
+  const dataRange=dataMax-dataMin;
+  // Minimum visible range = $4 so flat markets still show lines
+  const visRange=Math.max(dataRange*1.4, 4);
+  const center=(dataMax+dataMin)/2;
+  const vMin=center-visRange/2;
+  const vMax=center+visRange/2;
+
   const toX=i=>padL+(i/(len-1))*cW;
-  const toY=v=>padT+cH/2 - (v/SCALE)*(cH/2);
+  const toY=v=>padT+cH-((v-vMin)/(vMax-vMin))*cH;
 
   // Grid — center line only
   ctx.strokeStyle='rgba(58,69,96,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,6]);
