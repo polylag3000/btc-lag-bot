@@ -3,267 +3,329 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>LAGSCOPE</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<title>LAGSCOPE · BTC Dislocation Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080b0f;--surface:#0d1117;--border:#1a2030;--up:#00ff88;--down:#ff3b5c;--neutral:#4a9eff;--poly:#ffcc00;--dim:#3a4560;--text:#c8d8f0;--muted:#4a5870;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;}
-.logo span{color:var(--neutral);}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;}
-.dot.live{background:var(--up);box-shadow:0 0 10px var(--up);animation:pulse 2s infinite;}
+:root{
+  --bg:#05070a;
+  --bg-2:#0a0d14;
+  --surface:#0d1219;
+  --surface-2:#131927;
+  --border:#1d2535;
+  --border-lite:#2a3447;
+  --up:#00e676;
+  --down:#ff3b5c;
+  --accent:#5b8def;
+  --accent-2:#ffb020;
+  --text:#e8ecf4;
+  --text-dim:#8892a6;
+  --muted:#4a5568;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;min-height:100vh;font-feature-settings:'ss01','cv11';-webkit-font-smoothing:antialiased;}
+
+/* Ambient gradient background */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 800px 400px at 20% 0%, rgba(91,141,239,0.08), transparent),
+    radial-gradient(ellipse 600px 300px at 80% 100%, rgba(255,176,32,0.05), transparent);
+  pointer-events:none;z-index:0;
+}
+
+header{
+  position:sticky;top:0;z-index:100;
+  padding:18px 20px 14px;
+  background:rgba(5,7,10,0.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-family:'Inter';font-weight:900;font-size:18px;letter-spacing:-0.03em;color:#fff;}
+.logo span{background:linear-gradient(135deg,#5b8def,#ffb020);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.status{display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:100px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+.dot.live{background:var(--up);box-shadow:0 0 0 3px rgba(0,230,118,0.2);animation:pulse 2s infinite;}
 .dot.error{background:var(--down);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.slbl{font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;}
-main{padding:14px;display:flex;flex-direction:column;gap:12px;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(0,230,118,0.2);}50%{box-shadow:0 0 0 6px rgba(0,230,118,0);}}
+.status-text{font-family:'JetBrains Mono';font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--text-dim);text-transform:uppercase;}
+
+main{position:relative;z-index:1;padding:16px;display:flex;flex-direction:column;gap:12px;}
+
+/* Signal banner */
+.ban{
+  display:none;border-radius:14px;padding:16px 18px;
+  font-family:'Inter';font-weight:800;font-size:15px;text-align:center;letter-spacing:-0.01em;
+  position:relative;overflow:hidden;
+}
+.ban.show{display:block;animation:slideIn 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+.ban.up{background:linear-gradient(135deg,#00e676,#00a854);color:#000;box-shadow:0 8px 32px -8px rgba(0,230,118,0.5);}
+.ban.dn{background:linear-gradient(135deg,#ff3b5c,#cc2040);color:#fff;box-shadow:0 8px 32px -8px rgba(255,59,92,0.5);}
+@keyframes slideIn{0%{transform:translateY(-12px) scale(0.95);opacity:0;}100%{transform:translateY(0) scale(1);opacity:1;}}
+
+/* Price cards */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.pcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:border-color 0.3s;}
-.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.pcard.bin::before{background:var(--neutral);}
-.pcard.poly::before{background:var(--poly);}
-.pcard.up{border-color:rgba(0,255,136,0.3);}
-.pcard.dn{border-color:rgba(255,59,92,0.3);}
-.plbl{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.pdot{width:6px;height:6px;border-radius:50%;display:inline-block;}
-.pval{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1;}
+.pcard{
+  background:linear-gradient(135deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);border-radius:14px;padding:16px;
+  position:relative;overflow:hidden;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pcard.bin::before{background:linear-gradient(90deg,var(--accent),#3d6bc4);}
+.pcard.poly::before{background:linear-gradient(90deg,var(--accent-2),#c8891a);}
+.pcard.up{box-shadow:inset 0 0 0 1px rgba(0,230,118,0.25);}
+.pcard.dn{box-shadow:inset 0 0 0 1px rgba(255,59,92,0.25);}
+
+.plbl{font-family:'JetBrains Mono';font-size:10px;font-weight:600;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.pdot{width:5px;height:5px;border-radius:50%;}
+.pval{font-family:'Inter';font-size:26px;font-weight:800;color:#fff;line-height:1;letter-spacing:-0.03em;transition:color 0.2s;}
 .pval.fu{color:var(--up);}.pval.fd{color:var(--down);}
-.psub{font-size:10px;color:var(--muted);margin-top:5px;}
-.ban{display:none;border-radius:10px;padding:14px 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;text-align:center;}
-.ban.show{display:block;animation:fb 0.4s ease;}
-.ban.up{background:linear-gradient(135deg,#00ff88,#00cc6a);color:#000;}
-.ban.dn{background:linear-gradient(135deg,#ff3b5c,#cc2040);color:#fff;}
-@keyframes fb{0%{transform:scale(0.96);opacity:0}100%{transform:scale(1);opacity:1}}
-.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.chart-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
-.legend{display:flex;gap:14px;}
-.leg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
-.legline{width:12px;height:2px;border-radius:1px;display:inline-block;}
-.spread-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.spread-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.spread-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;transition:color 0.3s;}
-.spread-label{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
-.spread-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:8px;}
-.bias-track{height:4px;background:var(--border);border-radius:2px;margin:10px 0 6px;position:relative;}
-.bias-fill{height:100%;border-radius:2px;transition:width 0.5s,background 0.3s;}
-.bias-center{position:absolute;left:50%;top:-4px;width:1px;height:12px;background:var(--dim);}
-.bias-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);}
+.psub{font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);margin-top:6px;font-weight:500;}
+.psub.up{color:var(--up);}.psub.dn{color:var(--down);}
+
+/* Main chart card - HERO */
+.hero-chart{
+  background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);
+  border:1px solid var(--border);border-radius:16px;padding:18px 16px 12px;
+  position:relative;overflow:hidden;
+}
+.hero-chart::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(91,141,239,0.4),rgba(255,176,32,0.4),transparent);
+}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.chart-title{font-family:'Inter';font-size:12px;font-weight:700;color:#fff;letter-spacing:-0.01em;display:flex;align-items:center;gap:6px;}
+.chart-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--up);box-shadow:0 0 8px var(--up);}
+.chart-sub{font-family:'JetBrains Mono';font-size:9px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+.legend{display:flex;gap:12px;}
+.leg{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);font-weight:500;letter-spacing:0.08em;}
+.legline{width:14px;height:2px;border-radius:1px;}
+
+/* Deviation card */
+.spread-card{
+  background:linear-gradient(135deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);border-radius:14px;padding:16px;
+}
+.spread-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.spread-lbl{font-family:'JetBrains Mono';font-size:9px;font-weight:600;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px;}
+.spread-val{font-family:'Inter';font-size:34px;font-weight:800;line-height:1;letter-spacing:-0.03em;transition:color 0.3s;}
+.raw-val{font-family:'Inter';font-size:20px;font-weight:700;color:var(--text-dim);letter-spacing:-0.02em;}
+.bias-track{height:4px;background:var(--border);border-radius:2px;margin:12px 0 8px;position:relative;overflow:visible;}
+.bias-fill{height:100%;border-radius:2px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1),background 0.3s;}
+.bias-center{position:absolute;left:50%;top:-4px;width:1px;height:12px;background:var(--border-lite);}
+.bias-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:9px;color:var(--text-dim);letter-spacing:0.08em;font-weight:500;}
+.spread-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-weight:500;}
+.spread-meta b{color:var(--text);font-weight:600;}
+
+/* Stats */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.sbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
-.sv{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;}
-.sl{font-size:8px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-top:4px;}
-.log-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.lt{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-#lg{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;}
-.le{font-size:10px;color:var(--muted);border-left:2px solid var(--border);padding-left:8px;line-height:1.6;}
+.sbox{
+  background:linear-gradient(135deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;
+}
+.sv{font-family:'Inter';font-weight:800;font-size:20px;color:#fff;letter-spacing:-0.03em;}
+.sl{font-family:'JetBrains Mono';font-size:9px;font-weight:600;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-top:5px;}
+
+/* Event log */
+.log-card{
+  background:linear-gradient(135deg,var(--surface),var(--surface-2));
+  border:1px solid var(--border);border-radius:14px;padding:16px;
+}
+.lt{font-family:'JetBrains Mono';font-size:10px;font-weight:600;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.lt::before{content:'●';color:var(--up);font-size:8px;}
+#lg{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.le{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);border-left:2px solid var(--border);padding:4px 0 4px 10px;line-height:1.5;font-weight:500;letter-spacing:0.02em;}
 .le.ul{border-color:var(--up);color:var(--up);}
 .le.dl{border-color:var(--down);color:var(--down);}
+
 canvas{width:100% !important;}
-footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
+footer{padding:24px 16px;text-align:center;font-family:'JetBrains Mono';font-size:9px;color:var(--muted);letter-spacing:0.2em;font-weight:500;text-transform:uppercase;}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">LAG<span>SCOPE</span></div>
-  <div style="display:flex;align-items:center;gap:6px">
-    <span class="dot" id="dot"></span>
-    <span class="slbl" id="slbl">CONNECTING</span>
-  </div>
+  <div class="status"><span class="dot" id="dot"></span><span class="status-text" id="slbl">CONNECTING</span></div>
 </header>
+
 <main>
   <div class="ban" id="ban">SIGNAL</div>
+
   <div class="row">
     <div class="pcard bin" id="bc">
-      <div class="plbl"><span class="pdot" style="background:var(--neutral)"></span>BINANCE</div>
+      <div class="plbl"><span class="pdot" style="background:var(--accent)"></span>BINANCE</div>
       <div class="pval" id="bp">—</div>
-      <div class="psub" id="bs">live</div>
+      <div class="psub" id="bs">—</div>
     </div>
     <div class="pcard poly" id="pc">
-      <div class="plbl"><span class="pdot" style="background:var(--poly)"></span>POLYMARKET</div>
+      <div class="plbl"><span class="pdot" style="background:var(--accent-2)"></span>POLYMARKET</div>
       <div class="pval" id="pp">—</div>
-      <div class="psub">market price</div>
+      <div class="psub" id="ps">—</div>
     </div>
   </div>
 
-  <div class="chart-card">
+  <div class="hero-chart">
     <div class="chart-header">
-      <div class="chart-title">⚡ LIVE LAG MONITOR</div>
+      <div class="chart-title">Live Lag Monitor</div>
       <div class="legend">
-        <div class="leg"><div class="legline" style="background:var(--neutral)"></div>BINANCE</div>
-        <div class="leg"><div class="legline" style="background:var(--poly)"></div>POLYMARKET</div>
+        <div class="leg"><div class="legline" style="background:var(--accent)"></div>BINANCE</div>
+        <div class="leg"><div class="legline" style="background:var(--accent-2)"></div>POLYMARKET</div>
       </div>
     </div>
-    <canvas id="mainChart" height="200"></canvas>
+    <div class="chart-sub">Real-time price tracking · bias-corrected</div>
+    <canvas id="mainChart" height="220"></canvas>
   </div>
 
   <div class="spread-card">
     <div class="spread-row">
       <div>
-        <div class="spread-label">DEVIATION FROM BIAS</div>
+        <div class="spread-lbl">Deviation from bias</div>
         <div class="spread-val" id="dv">$0.00</div>
       </div>
       <div style="text-align:right">
-        <div class="spread-label">RAW SPREAD</div>
-        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--muted)" id="rawspread">$0.00</div>
+        <div class="spread-lbl">Raw spread</div>
+        <div class="raw-val" id="rawspread">$0.00</div>
       </div>
     </div>
     <div class="bias-track">
-      <div class="bias-fill" id="bf" style="width:50%;background:var(--dim)"></div>
+      <div class="bias-fill" id="bf" style="width:50%;background:var(--border-lite)"></div>
       <div class="bias-center"></div>
     </div>
-    <div class="bias-labels"><span>◄ DOWN</span><span id="bd">neutral</span><span>UP ►</span></div>
+    <div class="bias-labels"><span>◄ DOWN</span><span id="bd">NEUTRAL</span><span>UP ►</span></div>
     <div class="spread-meta">
-      <span>bias: <b id="bv">—</b></span>
-      <span>threshold: $<b id="thr">2</b></span>
-      <span>ticks: <b id="tv">0</b></span>
+      <span>bias <b id="bv">—</b></span>
+      <span>threshold <b>$<span id="thr">2</span></b></span>
+      <span>ticks <b id="tv">0</b></span>
     </div>
   </div>
 
   <div class="stats">
-    <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
-    <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
-    <div class="sbox"><div class="sv" id="md">0.00</div><div class="sl">MAX DEV $</div></div>
+    <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">Signals</div></div>
+    <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">Ticks</div></div>
+    <div class="sbox"><div class="sv" id="md">0.00</div><div class="sl">Max Dev $</div></div>
   </div>
+
   <div class="log-card">
-    <div class="lt">EVENT LOG</div>
+    <div class="lt">Event Log</div>
     <div id="lg"></div>
   </div>
 </main>
-<footer>LAGSCOPE v10.0 · BTC DISLOCATION MONITOR</footer>
+<footer>LAGSCOPE · BTC DISLOCATION MONITOR · v15</footer>
 
 <script>
-const MX=120, LAG=5, EMA_ALPHA=0.25;
+const MX=120, LAG=5;
 const $=id=>document.getElementById(id);
 
-// Raw buffers
-let binRaw=[], polyRaw=[];
-// EMA-smoothed display arrays
-let binSmooth=[], polySmooth=[];
-
+let binArr=[], polyArr=[];
 let bp=null, pp=null, scnt=0, lsig=null, mCvs;
-let emaBin=null, emaPoly=null;
 
 function status(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
+function log(m,c){const l=$('lg'),e=document.createElement('div');e.className='le '+(c||'');e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;l.insertBefore(e,l.firstChild);while(l.children.length>20)l.removeChild(l.lastChild);}
+function initCanvas(id,h){const c=$(id),dpr=window.devicePixelRatio||1;c.width=c.parentElement.clientWidth*dpr;c.height=h*dpr;c.style.height=h+'px';const ctx=c.getContext('2d');ctx.scale(dpr,dpr);return{ctx,w:c.parentElement.clientWidth,h};}
 
-function log(m,c){
-  const l=$('lg'),e=document.createElement('div');
-  e.className='le '+(c||'');
-  e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;
-  l.insertBefore(e,l.firstChild);
-  while(l.children.length>20)l.removeChild(l.lastChild);
-}
-
-function initCanvas(id,h){
-  const c=$(id),dpr=window.devicePixelRatio||1;
-  c.width=c.parentElement.clientWidth*dpr;
-  c.height=h*dpr;c.style.height=h+'px';
-  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
-  return{ctx,w:c.parentElement.clientWidth,h};
-}
-
-// EMA smoother
-function ema(prev, val, alpha){
-  if(prev===null) return val;
-  return alpha*val + (1-alpha)*prev;
-}
-
-// Smooth array using bezier curve drawing
-function drawSmooth(ctx, points, color, lineWidth){
-  if(points.length<2) return;
+// Smooth curve drawing with Catmull-Rom spline
+function drawSmoothPath(ctx, points){
+  if(points.length<2)return;
   ctx.beginPath();
-  ctx.strokeStyle=color;
-  ctx.lineWidth=lineWidth;
-  ctx.lineJoin='round';
-  ctx.lineCap='round';
-
-  const [x0,y0]=points[0];
-  ctx.moveTo(x0,y0);
-
-  for(let i=1;i<points.length-1;i++){
-    const [x1,y1]=points[i];
-    const [x2,y2]=points[i+1];
-    // Quadratic bezier control point = midpoint
-    const cpx=(x1+x2)/2;
-    const cpy=(y1+y2)/2;
-    ctx.quadraticCurveTo(x1,y1,cpx,cpy);
+  ctx.moveTo(points[0][0], points[0][1]);
+  for(let i=0;i<points.length-1;i++){
+    const p0 = i>0 ? points[i-1] : points[i];
+    const p1 = points[i];
+    const p2 = points[i+1];
+    const p3 = i+2<points.length ? points[i+2] : p2;
+    // Catmull-Rom to bezier
+    const cp1x = p1[0] + (p2[0]-p0[0])/6;
+    const cp1y = p1[1] + (p2[1]-p0[1])/6;
+    const cp2x = p2[0] - (p3[0]-p1[0])/6;
+    const cp2y = p2[1] - (p3[1]-p1[1])/6;
+    ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,p2[0],p2[1]);
   }
-  const last=points[points.length-1];
-  ctx.lineTo(last[0],last[1]);
-  ctx.stroke();
 }
 
-function drawChart(cvs, bData, pData){
-  if(!cvs||bData.length<3) return;
+function drawChart(cvs, bArr, pArr){
+  if(!cvs || bArr.length<3 || pArr.length<3) return;
   const{ctx,w,h}=cvs;
   ctx.clearRect(0,0,w,h);
 
-  const len=Math.min(bData.length, pData.length);
-  if(len<3) return;
+  const len = Math.min(bArr.length, pArr.length);
+  const bS = bArr.slice(-len);
+  const pS = pArr.slice(-len);
 
-  const bS=bData.slice(-len);
-  const pS=pData.slice(-len);
+  // Bias correction: center lines together using rolling mean spread
+  const spreads = bS.map((b,i) => b - pS[i]);
+  const meanSpread = spreads.reduce((a,v)=>a+v,0)/spreads.length;
+  const pAdj = pS.map(v => v + meanSpread);
 
-  const padL=8,padR=8,padT=16,padB=16;
+  const padL=10,padR=10,padT=20,padB=16;
   const cW=w-padL-padR, cH=h-padT-padB;
 
-  // Auto-range with generous padding so lines stay visible
-  const allVals=[...bS,...pS];
-  const dataMin=Math.min(...allVals);
-  const dataMax=Math.max(...allVals);
-  const dataRange=dataMax-dataMin;
-  const visRange=Math.max(dataRange*1.6, 3); // min $3 range
-  const center=(dataMax+dataMin)/2;
-  const vMin=center-visRange/2;
-  const vMax=center+visRange/2;
+  const allVals=[...bS,...pAdj];
+  const vMin=Math.min(...allVals), vMax=Math.max(...allVals);
+  const vRange=Math.max(vMax-vMin, 2.5);
+  const padScale=vRange*0.3;
+  const scaleMin=vMin-padScale, scaleMax=vMax+padScale;
+  const scaleRange=scaleMax-scaleMin;
 
   const toX=i=>padL+(i/(len-1))*cW;
-  const toY=v=>padT+cH-((v-vMin)/(vMax-vMin))*cH;
+  const toY=v=>padT+cH-((v-scaleMin)/scaleRange)*cH;
 
-  // Subtle grid
-  ctx.strokeStyle='rgba(26,32,48,0.7)';ctx.lineWidth=1;
-  for(let i=1;i<=3;i++){
-    const y=padT+i*(cH/4);
+  // Subtle horizontal grid
+  ctx.strokeStyle='rgba(29,37,53,0.5)';ctx.lineWidth=1;
+  for(let i=1;i<=4;i++){
+    const y=padT+i*(cH/5);
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
   }
 
-  // Build point arrays
-  const bPts=bS.map((v,i)=>[toX(i),toY(v)]);
-  const pPts=pS.map((v,i)=>[toX(i),toY(v)]);
+  const bPts = bS.map((v,i)=>[toX(i),toY(v)]);
+  const pPts = pAdj.map((v,i)=>[toX(i),toY(v)]);
 
-  // Fill between curves
+  // Fill between curves - beautiful gradient
   ctx.beginPath();
-  bPts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
-  for(let i=pPts.length-1;i>=0;i--) ctx.lineTo(pPts[i][0],pPts[i][1]);
+  drawSmoothPath(ctx, bPts);
+  for(let i=pPts.length-1;i>=0;i--){
+    if(i===pPts.length-1) ctx.lineTo(pPts[i][0],pPts[i][1]);
+    else ctx.lineTo(pPts[i][0],pPts[i][1]);
+  }
   ctx.closePath();
-  const lastDiff=bS[len-1]-pS[len-1];
+  const lastDiff=bS[len-1]-pAdj[len-1];
   const grad=ctx.createLinearGradient(0,padT,0,h-padB);
   if(lastDiff>0){
-    grad.addColorStop(0,'rgba(0,255,136,0.12)');
-    grad.addColorStop(1,'rgba(0,255,136,0.02)');
+    grad.addColorStop(0,'rgba(0,230,118,0.18)');
+    grad.addColorStop(1,'rgba(0,230,118,0.02)');
   } else {
     grad.addColorStop(0,'rgba(255,59,92,0.02)');
-    grad.addColorStop(1,'rgba(255,59,92,0.12)');
+    grad.addColorStop(1,'rgba(255,59,92,0.18)');
   }
   ctx.fillStyle=grad;ctx.fill();
 
-  // Poly line — smooth bezier
-  drawSmooth(ctx, pPts, 'rgba(255,204,0,0.9)', 2);
+  // Poly line - smooth, slightly behind
+  ctx.strokeStyle='rgba(255,176,32,0.9)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+  drawSmoothPath(ctx, pPts);
+  ctx.stroke();
 
-  // Binance line — smooth bezier, on top
-  drawSmooth(ctx, bPts, '#4a9eff', 2.5);
+  // Binance line - bright, on top
+  ctx.strokeStyle='#5b8def';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  drawSmoothPath(ctx, bPts);
+  ctx.stroke();
 
-  // End dots with glow
-  const [lbx,lby]=bPts[bPts.length-1];
-  const [lpx,lpy]=pPts[pPts.length-1];
+  // End dots with multi-layer glow
+  const [lbx,lby] = bPts[bPts.length-1];
+  const [lpx,lpy] = pPts[pPts.length-1];
 
-  // Glow
-  ctx.shadowBlur=8;ctx.shadowColor='#4a9eff';
-  ctx.beginPath();ctx.arc(lbx,lby,4,0,Math.PI*2);ctx.fillStyle='#4a9eff';ctx.fill();
-  ctx.shadowBlur=8;ctx.shadowColor='#ffcc00';
-  ctx.beginPath();ctx.arc(lpx,lpy,4,0,Math.PI*2);ctx.fillStyle='#ffcc00';ctx.fill();
+  // Binance end - big glow
+  ctx.shadowBlur=14;ctx.shadowColor='#5b8def';
+  ctx.beginPath();ctx.arc(lbx,lby,5,0,Math.PI*2);
+  ctx.fillStyle='#5b8def';ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(lbx,lby,2,0,Math.PI*2);
+  ctx.fillStyle='#fff';ctx.fill();
+
+  // Poly end
+  ctx.shadowBlur=10;ctx.shadowColor='#ffb020';
+  ctx.beginPath();ctx.arc(lpx,lpy,4,0,Math.PI*2);
+  ctx.fillStyle='#ffb020';ctx.fill();
   ctx.shadowBlur=0;
 }
 
@@ -271,67 +333,57 @@ async function poll(){
   while(true){
     try{
       const r=await fetch('/api/data');
-      if(!r.ok) throw new Error(r.status);
+      if(!r.ok)throw new Error(r.status);
       const d=await r.json();
-      $('thr').textContent=d.threshold||2;
-      const bias=d.bias||0;
+      const bias=d.bias||0, thr=d.threshold||2;
+      $('thr').textContent=thr;
 
-      // Binance — smooth with EMA
       if(d.binance){
         const prev=bp; bp=d.binance;
-        emaBin=ema(emaBin, bp, EMA_ALPHA);
-        binRaw.push(bp);
-        binSmooth.push(emaBin);
-        if(binRaw.length>MX+LAG+10){binRaw.shift();binSmooth.shift();}
-
         const chg=prev?bp-prev:0;
-        $('bp').textContent='$'+bp.toFixed(0);
-        $('bs').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
+        $('bp').textContent='$'+bp.toLocaleString('en-US',{maximumFractionDigits:0});
+        const bsEl=$('bs');
+        bsEl.textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
+        bsEl.className='psub '+(chg>0?'up':chg<0?'dn':'');
         const el=$('bp');el.className='pval '+(chg>0?'fu':chg<0?'fd':'');
         setTimeout(()=>el.className='pval',400);
         $('bc').className='pcard bin '+(chg>0?'up':chg<0?'dn':'');
+        binArr.push(bp);
+        if(binArr.length>MX+5)binArr.shift();
         status('live');
       }
 
-      // Poly — buffer + EMA + bias correction so lines stay close
       if(d.poly_mid){
-        polyRaw.push(d.poly_mid);
-        const delayedIdx=polyRaw.length-1-LAG;
+        polyArr.push(d.poly_mid);
+        if(polyArr.length>MX+LAG+5)polyArr.shift();
+        const delayedIdx=polyArr.length-1-LAG;
         if(delayedIdx>=0){
-          const delVal=polyRaw[delayedIdx];
-          emaPoly=ema(emaPoly, delVal, EMA_ALPHA);
-          // Bias-correct: shift poly up by |bias| so lines meet
-          // bias is negative when poly trades below bin by a fixed amount
-          const biasCorrect = emaPoly - bias;
-          polySmooth.push(biasCorrect);
-          pp=emaPoly; // show real price in card
-          $('pp').textContent='$'+pp.toFixed(0);
+          pp=polyArr[delayedIdx];
+          $('pp').textContent='$'+pp.toLocaleString('en-US',{maximumFractionDigits:0});
+          $('ps').textContent='market price';
           $('pc').className='pcard poly '+(pp>(bp||0)?'up':'dn');
         }
-        if(polyRaw.length>MX+LAG+10) polyRaw.shift();
-        if(polySmooth.length>MX+10) polySmooth.shift();
       }
 
-      // Raw spread
       if(bp&&pp){
         const raw=bp-pp;
-        $('rawspread').textContent=(raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
-        $('rawspread').style.color=Math.abs(raw)>2?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
+        $('rawspread').textContent=(raw>=0?'+':'−')+'$'+Math.abs(raw).toFixed(2);
+        $('rawspread').style.color=Math.abs(raw)>thr?(raw>0?'var(--up)':'var(--down)'):'var(--text-dim)';
       }
 
-      const dev=d.deviation||0, thr=d.threshold||2;
-      $('dv').textContent='$'+(dev>=0?'+':'')+dev.toFixed(2);
+      const dev=d.deviation||0;
+      $('dv').textContent=(dev>=0?'+':'−')+'$'+Math.abs(dev).toFixed(2);
       $('dv').style.color=Math.abs(dev)>=thr?(dev>0?'var(--up)':'var(--down)'):'var(--text)';
-      $('bv').textContent=(bias>=0?'+':'')+bias.toFixed(2);
+      $('bv').textContent=(bias>=0?'+':'−')+'$'+Math.abs(bias).toFixed(2);
       $('tv').textContent=d.tick_count||0;
       $('tc').textContent=d.tick_count||0;
       $('md').textContent=(d.max_dev||0).toFixed(2);
 
-      const norm=Math.max(5,Math.min(95,50+bias*3));
+      const norm=Math.max(5,Math.min(95,50+bias*2));
       const f=$('bf');
-      if(bias>0.3){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='+$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
-      else if(bias<-0.3){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='$'+bias.toFixed(2);$('bd').style.color='var(--down)';}
-      else{f.style.width='50%';f.style.background='var(--dim)';$('bd').textContent='neutral';$('bd').style.color='var(--muted)';}
+      if(bias>0.5){f.style.width=norm+'%';f.style.background='linear-gradient(90deg,var(--accent),var(--up))';$('bd').textContent='UP BIAS';$('bd').style.color='var(--up)';}
+      else if(bias<-0.5){f.style.width=(100-norm)+'%';f.style.background='linear-gradient(90deg,var(--down),#a02640)';$('bd').textContent='DOWN BIAS';$('bd').style.color='var(--down)';}
+      else{f.style.width='50%';f.style.background='var(--border-lite)';$('bd').textContent='NEUTRAL';$('bd').style.color='var(--text-dim)';}
 
       if(d.sig_count>scnt){scnt=d.sig_count;$('sc').textContent=scnt;}
       if(d.last_signal&&d.last_signal.time!==lsig){
@@ -341,19 +393,14 @@ async function poll(){
         b.textContent=`⚡ DISLOCATION ${dir} · $${Math.abs(s.deviation).toFixed(2)}`;
         b.className='ban show '+(dir==='UP'?'up':'dn');
         setTimeout(()=>b.className='ban',8000);
-        log(`SIGNAL ${dir} | dev=$${s.deviation} | $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
+        log(`SIGNAL ${dir} · dev $${s.deviation} · $${s.binance?.toLocaleString('en-US',{maximumFractionDigits:0})}`,dir==='UP'?'ul':'dl');
       }
 
-      // For display: shift poly up by bias so lines are centered together
-      // bias-corrected poly = poly + bias_correction
-      // This makes lines meet at 0 offset, only diverge on real dislocation
-      if(mCvs && binSmooth.length > 3 && polySmooth.length > 3){
-        // Bias = rolling mean of (poly - binance) spread
-        // To center lines: add (-bias) to poly so average offset = 0
-        // Lines will naturally stay close, diverging only on real dislocation
-        const correction = -bias;
-        const biasCorrected = polySmooth.map(v => v + correction);
-        drawChart(mCvs, binSmooth, biasCorrected);
+      const displayLen=Math.min(binArr.length, polyArr.length-LAG);
+      if(displayLen>3){
+        const bDisp=binArr.slice(-displayLen);
+        const pDisp=polyArr.slice(polyArr.length-LAG-displayLen, polyArr.length-LAG);
+        if(mCvs)drawChart(mCvs, bDisp, pDisp);
       }
 
     }catch(e){status('error');}
@@ -362,12 +409,11 @@ async function poll(){
 }
 
 window.addEventListener('load',()=>{
-  mCvs=initCanvas('mainChart',200);
-  status('connecting');
-  log('Connecting...');
+  mCvs=initCanvas('mainChart',220);
+  status('connecting');log('Connecting to price feeds...');
   poll();
 });
-window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',200));
+window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',220));
 </script>
 </body>
 </html>
