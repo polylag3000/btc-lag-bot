@@ -348,12 +348,15 @@ async function poll(){
       // bias-corrected poly = poly + bias_correction
       // This makes lines meet at 0 offset, only diverge on real dislocation
       if(mCvs && binSmooth.length > 3 && polySmooth.length > 3){
-        // Bias = rolling mean of (poly - binance) spread
-        // To center lines: add (-bias) to poly so average offset = 0
-        // Lines will naturally stay close, diverging only on real dislocation
-        const correction = -bias;
-        const biasCorrected = polySmooth.map(v => v + correction);
-        drawChart(mCvs, binSmooth, biasCorrected);
+        const len = Math.min(binSmooth.length, polySmooth.length);
+        const bSlice = binSmooth.slice(-len);
+        const pSlice = polySmooth.slice(-len);
+        // Real mean spread between the two price series in browser
+        const spreads = bSlice.map((b,i) => b - pSlice[i]);
+        const meanSpread = spreads.reduce((a,b)=>a+b,0) / spreads.length;
+        // Shift poly UP by meanSpread so lines center on each other
+        const biasCorrected = pSlice.map(v => v + meanSpread);
+        drawChart(mCvs, bSlice, biasCorrected);
       }
 
     }catch(e){status('error');}
