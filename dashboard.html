@@ -293,15 +293,18 @@ async function poll(){
         status('live');
       }
 
-      // Poly — buffer + EMA
+      // Poly — buffer + EMA + bias correction so lines stay close
       if(d.poly_mid){
         polyRaw.push(d.poly_mid);
         const delayedIdx=polyRaw.length-1-LAG;
         if(delayedIdx>=0){
           const delVal=polyRaw[delayedIdx];
           emaPoly=ema(emaPoly, delVal, EMA_ALPHA);
-          polySmooth.push(emaPoly);
-          pp=emaPoly;
+          // Bias-correct: shift poly up by |bias| so lines meet
+          // bias is negative when poly trades below bin by a fixed amount
+          const biasCorrect = emaPoly - bias;
+          polySmooth.push(biasCorrect);
+          pp=emaPoly; // show real price in card
           $('pp').textContent='$'+pp.toFixed(0);
           $('pc').className='pcard poly '+(pp>(bp||0)?'up':'dn');
         }
@@ -341,7 +344,17 @@ async function poll(){
         log(`SIGNAL ${dir} | dev=$${s.deviation} | $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
       }
 
-      if(mCvs) drawChart(mCvs, binSmooth, polySmooth);
+      // For display: shift poly up by bias so lines are centered together
+      // bias-corrected poly = poly + bias_correction
+      // This makes lines meet at 0 offset, only diverge on real dislocation
+      if(mCvs && binSmooth.length > 3 && polySmooth.length > 3){
+        // Bias = rolling mean of (poly - binance) spread
+        // To center lines: add (-bias) to poly so average offset = 0
+        // Lines will naturally stay close, diverging only on real dislocation
+        const correction = -bias;
+        const biasCorrected = polySmooth.map(v => v + correction);
+        drawChart(mCvs, binSmooth, biasCorrected);
+      }
 
     }catch(e){status('error');}
     await new Promise(r=>setTimeout(r,1000));
