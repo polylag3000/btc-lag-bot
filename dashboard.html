@@ -87,7 +87,6 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
       <div class="psub">market price</div>
     </div>
   </div>
-
   <div class="chart-card">
     <div class="chart-header">
       <div class="chart-title">⚡ LIVE LAG MONITOR</div>
@@ -98,7 +97,6 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
     </div>
     <canvas id="mainChart" height="200"></canvas>
   </div>
-
   <div class="spread-card">
     <div class="spread-row">
       <div>
@@ -121,7 +119,6 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
       <span>ticks: <b id="tv">0</b></span>
     </div>
   </div>
-
   <div class="stats">
     <div class="sbox"><div class="sv" id="sc">0</div><div class="sl">SIGNALS</div></div>
     <div class="sbox"><div class="sv" id="tc">0</div><div class="sl">TICKS</div></div>
@@ -132,137 +129,81 @@ footer{padding:14px;text-align:center;font-size:9px;color:var(--dim);}
     <div id="lg"></div>
   </div>
 </main>
-<footer>LAGSCOPE v10.0 · BTC DISLOCATION MONITOR</footer>
+<footer>LAGSCOPE v14.0 · BTC DISLOCATION MONITOR</footer>
 
 <script>
-const MX=120, LAG=5, EMA_ALPHA=0.25;
+const MX=120, LAG=5;
 const $=id=>document.getElementById(id);
 
-// Raw buffers
-let binRaw=[], polyRaw=[];
-// EMA-smoothed display arrays
-let binSmooth=[], polySmooth=[];
-
+// Store raw prices
+let binArr=[], polyArr=[];
 let bp=null, pp=null, scnt=0, lsig=null, mCvs;
-let emaBin=null, emaPoly=null;
 
 function status(s){$('dot').className='dot '+s;$('slbl').textContent=s==='live'?'LIVE':s==='error'?'ERROR':'CONNECTING';}
+function log(m,c){const l=$('lg'),e=document.createElement('div');e.className='le '+(c||'');e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;l.insertBefore(e,l.firstChild);while(l.children.length>20)l.removeChild(l.lastChild);}
+function initCanvas(id,h){const c=$(id),dpr=window.devicePixelRatio||1;c.width=c.parentElement.clientWidth*dpr;c.height=h*dpr;c.style.height=h+'px';const ctx=c.getContext('2d');ctx.scale(dpr,dpr);return{ctx,w:c.parentElement.clientWidth,h};}
 
-function log(m,c){
-  const l=$('lg'),e=document.createElement('div');
-  e.className='le '+(c||'');
-  e.textContent=new Date().toTimeString().slice(0,8)+' · '+m;
-  l.insertBefore(e,l.firstChild);
-  while(l.children.length>20)l.removeChild(l.lastChild);
-}
-
-function initCanvas(id,h){
-  const c=$(id),dpr=window.devicePixelRatio||1;
-  c.width=c.parentElement.clientWidth*dpr;
-  c.height=h*dpr;c.style.height=h+'px';
-  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
-  return{ctx,w:c.parentElement.clientWidth,h};
-}
-
-// EMA smoother
-function ema(prev, val, alpha){
-  if(prev===null) return val;
-  return alpha*val + (1-alpha)*prev;
-}
-
-// Smooth array using bezier curve drawing
-function drawSmooth(ctx, points, color, lineWidth){
-  if(points.length<2) return;
-  ctx.beginPath();
-  ctx.strokeStyle=color;
-  ctx.lineWidth=lineWidth;
-  ctx.lineJoin='round';
-  ctx.lineCap='round';
-
-  const [x0,y0]=points[0];
-  ctx.moveTo(x0,y0);
-
-  for(let i=1;i<points.length-1;i++){
-    const [x1,y1]=points[i];
-    const [x2,y2]=points[i+1];
-    // Quadratic bezier control point = midpoint
-    const cpx=(x1+x2)/2;
-    const cpy=(y1+y2)/2;
-    ctx.quadraticCurveTo(x1,y1,cpx,cpy);
-  }
-  const last=points[points.length-1];
-  ctx.lineTo(last[0],last[1]);
-  ctx.stroke();
-}
-
-function drawChart(cvs, spreadData, lagData){
-  if(!cvs || spreadData.length < 3) return;
+function drawChart(cvs, bArr, pArr){
+  if(!cvs || bArr.length < 3 || pArr.length < 3) return;
   const{ctx,w,h}=cvs;
   ctx.clearRect(0,0,w,h);
 
-  const len = Math.min(spreadData.length, lagData.length);
-  if(len < 3) return;
+  const len = Math.min(bArr.length, pArr.length);
+  const bS = bArr.slice(-len);
+  const pS = pArr.slice(-len);
 
-  const sS = spreadData.slice(-len);
-  const lS = lagData.slice(-len);
+  // Key: compute rolling mean spread, then offset poly so mean spread = 0
+  // This centers lines together regardless of exchange price difference
+  const spreads = bS.map((b,i) => b - pS[i]);
+  const meanSpread = spreads.reduce((a,v)=>a+v,0)/spreads.length;
+
+  // Bias-corrected poly: add meanSpread so avg offset = 0
+  const pAdj = pS.map(v => v + meanSpread);
 
   const padL=8,padR=8,padT=16,padB=16;
   const cW=w-padL-padR, cH=h-padT-padB;
 
-  // Auto-range centered on 0
-  const allVals=[...sS,...lS];
-  const absMax = Math.max(Math.abs(Math.min(...allVals)), Math.abs(Math.max(...allVals)));
-  const visRange = Math.max(absMax * 2.2, 4); // min $4 range
-  const vMin = -visRange/2;
-  const vMax = visRange/2;
+  // Scale: find range of BOTH series together
+  const allVals=[...bS,...pAdj];
+  const vMin=Math.min(...allVals), vMax=Math.max(...allVals);
+  const vRange=Math.max(vMax-vMin, 2); // min $2 range
+  const pad=vRange*0.25;
+  const scaleMin=vMin-pad, scaleMax=vMax+pad;
+  const scaleRange=scaleMax-scaleMin;
 
-  const toX = i => padL + (i/(len-1))*cW;
-  const toY = v => padT + cH - ((v - vMin)/(vMax - vMin))*cH;
-  const zeroY = toY(0);
+  const toX=i=>padL+(i/(len-1))*cW;
+  const toY=v=>padT+cH-((v-scaleMin)/scaleRange)*cH;
 
-  // Zero axis
-  ctx.strokeStyle='rgba(58,69,96,0.6)';ctx.lineWidth=1;ctx.setLineDash([4,6]);
-  ctx.beginPath();ctx.moveTo(padL,zeroY);ctx.lineTo(w-padR,zeroY);ctx.stroke();
-  ctx.setLineDash([]);
+  // Subtle grid
+  ctx.strokeStyle='rgba(26,32,48,0.6)';ctx.lineWidth=1;
+  for(let i=1;i<=3;i++){const y=padT+i*(cH/4);ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();}
 
-  // Threshold lines ±$2
-  const THRESH = 2;
-  [THRESH, -THRESH].forEach(v => {
-    const y = toY(v);
-    ctx.strokeStyle='rgba(255,204,0,0.15)';ctx.lineWidth=1;ctx.setLineDash([2,8]);
-    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
-  });
-  ctx.setLineDash([]);
-
-  // Fill under spread curve
+  // Fill between
   ctx.beginPath();
-  sS.forEach((v,i) => i===0 ? ctx.moveTo(toX(i),toY(v)) : ctx.lineTo(toX(i),toY(v)));
-  ctx.lineTo(toX(len-1), zeroY);
-  ctx.lineTo(padL, zeroY);
+  bS.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
+  for(let i=len-1;i>=0;i--)ctx.lineTo(toX(i),toY(pAdj[i]));
   ctx.closePath();
-  const lastVal = sS[len-1];
-  ctx.fillStyle = lastVal > 0 ? 'rgba(0,255,136,0.08)' : 'rgba(255,59,92,0.08)';
-  ctx.fill();
+  const lastDiff=bS[len-1]-pAdj[len-1];
+  const grad=ctx.createLinearGradient(0,padT,0,h-padB);
+  if(lastDiff>0){grad.addColorStop(0,'rgba(0,255,136,0.12)');grad.addColorStop(1,'rgba(0,255,136,0.02)');}
+  else{grad.addColorStop(0,'rgba(255,59,92,0.02)');grad.addColorStop(1,'rgba(255,59,92,0.12)');}
+  ctx.fillStyle=grad;ctx.fill();
 
-  // Lag line (yellow) — drawn first, behind
-  const lagPts = lS.map((v,i) => [toX(i), toY(v)]);
-  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.7)';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.lineCap='round';
-  lagPts.forEach(([x,y],i) => i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+  // Poly line
+  ctx.beginPath();ctx.strokeStyle='rgba(255,204,0,0.9)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+  pAdj.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // Main spread line (blue)
-  const spts = sS.map((v,i) => [toX(i), toY(v)]);
+  // Binance line
   ctx.beginPath();ctx.strokeStyle='#4a9eff';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
-  spts.forEach(([x,y],i) => i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+  bS.forEach((v,i)=>i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v)));
   ctx.stroke();
 
-  // End dots
-  const [lbx,lby]=spts[spts.length-1];
-  const [lpx,lpy]=lagPts[lagPts.length-1];
+  // Dots
   ctx.shadowBlur=8;ctx.shadowColor='#4a9eff';
-  ctx.beginPath();ctx.arc(lbx,lby,4,0,Math.PI*2);ctx.fillStyle='#4a9eff';ctx.fill();
-  ctx.shadowBlur=6;ctx.shadowColor='#ffcc00';
-  ctx.beginPath();ctx.arc(lpx,lpy,3,0,Math.PI*2);ctx.fillStyle='#ffcc00';ctx.fill();
+  ctx.beginPath();ctx.arc(toX(len-1),toY(bS[len-1]),4,0,Math.PI*2);ctx.fillStyle='#4a9eff';ctx.fill();
+  ctx.shadowBlur=8;ctx.shadowColor='#ffcc00';
+  ctx.beginPath();ctx.arc(toX(len-1),toY(pAdj[len-1]),4,0,Math.PI*2);ctx.fillStyle='#ffcc00';ctx.fill();
   ctx.shadowBlur=0;
 }
 
@@ -270,55 +211,43 @@ async function poll(){
   while(true){
     try{
       const r=await fetch('/api/data');
-      if(!r.ok) throw new Error(r.status);
+      if(!r.ok)throw new Error(r.status);
       const d=await r.json();
-      $('thr').textContent=d.threshold||2;
-      const bias=d.bias||0;
+      const bias=d.bias||0, thr=d.threshold||2;
+      $('thr').textContent=thr;
 
-      // Binance — smooth with EMA
       if(d.binance){
         const prev=bp; bp=d.binance;
-        emaBin=ema(emaBin, bp, EMA_ALPHA);
-        binRaw.push(bp);
-        binSmooth.push(emaBin);
-        if(binRaw.length>MX+LAG+10){binRaw.shift();binSmooth.shift();}
-
         const chg=prev?bp-prev:0;
         $('bp').textContent='$'+bp.toFixed(0);
         $('bs').textContent=(chg>=0?'+':'')+chg.toFixed(1)+' USD';
         const el=$('bp');el.className='pval '+(chg>0?'fu':chg<0?'fd':'');
         setTimeout(()=>el.className='pval',400);
         $('bc').className='pcard bin '+(chg>0?'up':chg<0?'dn':'');
+        binArr.push(bp);
+        if(binArr.length>MX+5)binArr.shift();
         status('live');
       }
 
-      // Poly — buffer + EMA + bias correction so lines stay close
       if(d.poly_mid){
-        polyRaw.push(d.poly_mid);
-        const delayedIdx=polyRaw.length-1-LAG;
+        // Delayed by LAG
+        polyArr.push(d.poly_mid);
+        if(polyArr.length>MX+LAG+5)polyArr.shift();
+        const delayedIdx=polyArr.length-1-LAG;
         if(delayedIdx>=0){
-          const delVal=polyRaw[delayedIdx];
-          emaPoly=ema(emaPoly, delVal, EMA_ALPHA);
-          // Bias-correct: shift poly up by |bias| so lines meet
-          // bias is negative when poly trades below bin by a fixed amount
-          const biasCorrect = emaPoly - bias;
-          polySmooth.push(biasCorrect);
-          pp=emaPoly; // show real price in card
+          pp=polyArr[delayedIdx];
           $('pp').textContent='$'+pp.toFixed(0);
           $('pc').className='pcard poly '+(pp>(bp||0)?'up':'dn');
         }
-        if(polyRaw.length>MX+LAG+10) polyRaw.shift();
-        if(polySmooth.length>MX+10) polySmooth.shift();
       }
 
-      // Raw spread
       if(bp&&pp){
         const raw=bp-pp;
         $('rawspread').textContent=(raw>=0?'+':'')+'$'+Math.abs(raw).toFixed(2);
-        $('rawspread').style.color=Math.abs(raw)>2?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
+        $('rawspread').style.color=Math.abs(raw)>thr?(raw>0?'var(--up)':'var(--down)'):'var(--muted)';
       }
 
-      const dev=d.deviation||0, thr=d.threshold||2;
+      const dev=d.deviation||0;
       $('dv').textContent='$'+(dev>=0?'+':'')+dev.toFixed(2);
       $('dv').style.color=Math.abs(dev)>=thr?(dev>0?'var(--up)':'var(--down)'):'var(--text)';
       $('bv').textContent=(bias>=0?'+':'')+bias.toFixed(2);
@@ -326,10 +255,10 @@ async function poll(){
       $('tc').textContent=d.tick_count||0;
       $('md').textContent=(d.max_dev||0).toFixed(2);
 
-      const norm=Math.max(5,Math.min(95,50+bias*3));
+      const norm=Math.max(5,Math.min(95,50+bias*2));
       const f=$('bf');
-      if(bias>0.3){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='+$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
-      else if(bias<-0.3){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='$'+bias.toFixed(2);$('bd').style.color='var(--down)';}
+      if(bias>0.5){f.style.width=norm+'%';f.style.background='var(--up)';$('bd').textContent='+$'+bias.toFixed(2);$('bd').style.color='var(--up)';}
+      else if(bias<-0.5){f.style.width=(100-norm)+'%';f.style.background='var(--down)';$('bd').textContent='$'+bias.toFixed(2);$('bd').style.color='var(--down)';}
       else{f.style.width='50%';f.style.background='var(--dim)';$('bd').textContent='neutral';$('bd').style.color='var(--muted)';}
 
       if(d.sig_count>scnt){scnt=d.sig_count;$('sc').textContent=scnt;}
@@ -343,22 +272,12 @@ async function poll(){
         log(`SIGNAL ${dir} | dev=$${s.deviation} | $${s.binance?.toFixed(0)}`,dir==='UP'?'ul':'dl');
       }
 
-      // For display: shift poly up by bias so lines are centered together
-      // bias-corrected poly = poly + bias_correction
-      // This makes lines meet at 0 offset, only diverge on real dislocation
-      if(mCvs && binSmooth.length > 5 && polySmooth.length > 5){
-        const len = Math.min(binSmooth.length, polySmooth.length);
-        const bSlice = binSmooth.slice(-len);
-        const pSlice = polySmooth.slice(-len);
-        // Spread = binance - poly (deviation from zero = pure dislocation signal)
-        const spreadArr = bSlice.map((b,i) => b - pSlice[i]);
-        // Rolling mean of spread (bias baseline)
-        const meanSpread = spreadArr.reduce((a,b)=>a+b,0)/spreadArr.length;
-        // Deviation from mean = centered around zero
-        const devArr = spreadArr.map(v => v - meanSpread);
-        // Lag version = devArr shifted back by LAG ticks
-        const lagArr = devArr.map((v,i) => devArr[Math.max(0, i-LAG)]);
-        drawChart(mCvs, devArr, lagArr);
+      // Build display arrays: bin as-is, poly delayed
+      const displayLen=Math.min(binArr.length, polyArr.length-LAG);
+      if(displayLen>3){
+        const bDisp=binArr.slice(-displayLen);
+        const pDisp=polyArr.slice(polyArr.length-LAG-displayLen, polyArr.length-LAG);
+        if(mCvs)drawChart(mCvs, bDisp, pDisp);
       }
 
     }catch(e){status('error');}
@@ -368,8 +287,7 @@ async function poll(){
 
 window.addEventListener('load',()=>{
   mCvs=initCanvas('mainChart',200);
-  status('connecting');
-  log('Connecting...');
+  status('connecting');log('Connecting...');
   poll();
 });
 window.addEventListener('resize',()=>mCvs=initCanvas('mainChart',200));
